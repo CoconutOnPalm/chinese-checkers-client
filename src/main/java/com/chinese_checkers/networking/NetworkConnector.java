@@ -17,16 +17,19 @@ public class NetworkConnector
 	private BufferedReader in;
 	private PrintWriter out;
 
-	private ReentrantLock lock = new ReentrantLock();
+	private final ReentrantLock lock = new ReentrantLock();
 	private NetworkListener listener;
+	private final CommandParser commandParser;
 
 
 
-	public NetworkConnector(int port, String hostname)
+	public NetworkConnector(final String hostname, final int port, final CommandParser commandParser)
 	{
 		this.port = port;
 		this.hostname = hostname;
+		this.commandParser = commandParser;
 	}
+
 
 
 	public void connect()
@@ -35,7 +38,12 @@ public class NetworkConnector
 	}
 
 
-	public void connect(final int max_attempts, final int connection_frequency_ms)
+	/**
+	 * @brief Connects to the server
+	 * @param max_attempts              Maximum number of attempts to connect
+	 * @param connection_frequency_ms   Frequency of connection attempts in milliseconds
+	 */
+	public boolean connect(final int max_attempts, final int connection_frequency_ms)
 	{
 		boolean success = false;
 		for (int i = 0; i < max_attempts; i++)
@@ -46,7 +54,6 @@ public class NetworkConnector
 				in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				out = new PrintWriter(socket.getOutputStream(), true);
 				success = true;
-				System.out.println("Successfully connected to server: " + hostname + ":" + port);
 				break;
 			}
 			catch (final UnknownHostException e)
@@ -73,15 +80,30 @@ public class NetworkConnector
 		if (!success)
 		{
 			System.out.println("Could not connect to server");
+			return false;
+		}
+
+		listener = new NetworkListener(in, lock, commandParser);
+		listener.start();
+
+		return true;
+	}
+
+	/**
+	 * @brief Disconnects from the server
+	 */
+	public void disconnect()
+	{
+		if (listener == null)
+		{
+			System.out.println("Listener not initialized");
 			return;
 		}
 
-		listener = new NetworkListener(in, lock);
-		listener.start();
-	}
+		lock.lock();
+		listener.terminate();
+		lock.unlock();
 
-	public void disconnect()
-	{
 		try
 		{
 			listener.join();
@@ -104,8 +126,33 @@ public class NetworkConnector
 	}
 
 
+	/**
+	 * @brief Sends a message to the server
+	 * @param message   Message to send
+	 */
 	public void send(String message)
 	{
 		out.println(message);
+	}
+
+	public String expectResponse(String type)
+	{
+		try
+		{
+			String line = in.readLine();
+			if (line == null)
+				return null;
+
+			String[] parts = line.split(" ");
+			if (parts.length < 2 || !parts[0].equals(type))
+				return null;
+
+			return line.substring(parts[0].length() + 1);
+		}
+		catch (IOException e)
+		{
+			System.out.println("I/O error: " + e);
+			return null;
+		}
 	}
 }

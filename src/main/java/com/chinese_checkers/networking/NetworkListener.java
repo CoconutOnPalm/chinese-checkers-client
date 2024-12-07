@@ -5,19 +5,24 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.Buffer;
+import java.util.HashSet;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class NetworkListener extends Thread
 {
 	private final BufferedReader in;
 	private final ReentrantLock threadLock;
+	private final CommandParser commandParser;
+	private boolean running = true;
 
 
-	public NetworkListener(final BufferedReader in, final ReentrantLock threadLock)
+	public NetworkListener(final BufferedReader in, final ReentrantLock threadLock, final CommandParser commandParser)
 	{
 		this.in = in;
 		this.threadLock = threadLock;
+		this.commandParser = commandParser;
 	}
 
 
@@ -28,24 +33,24 @@ public class NetworkListener extends Thread
 
 		try
 		{
-			threadLock.lock();
 			line = in.readLine();
-			threadLock.unlock();
 
 			if (line != null)
 			{
-				CommandParser.parseCommand(line);
+				threadLock.lock();
+				commandParser.parseCommand(line);
+				threadLock.unlock();
 
-				while (true)
+				while (running)
 				{
-					threadLock.lock();
 					line = in.readLine();
-					threadLock.unlock();
 
+					threadLock.lock();
 					if (line == null)
 						break;
 
-					CommandParser.parseCommand(line);
+					commandParser.parseCommand(line);
+					threadLock.unlock();
 				}
 			}
 		}
@@ -60,5 +65,10 @@ public class NetworkListener extends Thread
 		}
 
 		System.out.println("Connection closed");
+	}
+
+	public void terminate()
+	{
+		running = false;
 	}
 }
