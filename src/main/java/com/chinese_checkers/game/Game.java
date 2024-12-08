@@ -85,6 +85,7 @@ public class Game
 	private void disconnect(String line)
 	{
 		server.send("disconnect");
+		// exits on server response
 		isRunning = false;
 		server.disconnect();
 	}
