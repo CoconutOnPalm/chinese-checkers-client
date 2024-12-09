@@ -1,13 +1,9 @@
 package com.chinese_checkers.networking;
 
+import com.chinese_checkers.comms.CommandParser;
+import com.chinese_checkers.comms.Message.Message;
+
 import java.io.*;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.nio.Buffer;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class NetworkListener extends Thread
@@ -38,7 +34,9 @@ public class NetworkListener extends Thread
 			if (line != null)
 			{
 				threadLock.lock();
-				commandParser.parseCommand(line);
+				Message message = Message.fromJson(line);
+				if (message != null)
+					commandParser.parseCommand(message);
 				threadLock.unlock();
 
 				while (running)
@@ -49,7 +47,9 @@ public class NetworkListener extends Thread
 					if (line == null)
 						break;
 
-					commandParser.parseCommand(line);
+					message = Message.fromJson(line);
+					if (message != null)
+						commandParser.parseCommand(message);
 					threadLock.unlock();
 				}
 			}

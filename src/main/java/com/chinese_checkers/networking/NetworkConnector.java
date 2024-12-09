@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.locks.ReentrantLock;
+import com.chinese_checkers.comms.CommandParser;
 
 public class NetworkConnector
 {
@@ -22,7 +23,6 @@ public class NetworkConnector
 	private final CommandParser commandParser;
 
 
-
 	public NetworkConnector(final String hostname, final int port, final CommandParser commandParser)
 	{
 		this.port = port;
@@ -32,9 +32,9 @@ public class NetworkConnector
 
 
 
-	public void connect()
+	public boolean connect()
 	{
-		connect(10, 1000);
+		return connect(10, 1000);
 	}
 
 

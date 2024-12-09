@@ -3,12 +3,12 @@ package com.chinese_checkers.game;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
-public class UserCommandParser
+public class ClientCommandParser
 {
 	private final HashMap<String, Consumer<String>> commands = new HashMap<>();
 
 
-	public UserCommandParser()
+	public ClientCommandParser()
 	{
 	}
 

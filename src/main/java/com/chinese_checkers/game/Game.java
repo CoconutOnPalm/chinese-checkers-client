@@ -1,7 +1,14 @@
 package com.chinese_checkers.game;
 
-import com.chinese_checkers.networking.CommandParser;
+import com.chinese_checkers.comms.CommandParser;
+import com.chinese_checkers.comms.Message.FromClient.RequestJoinMessage;
+import com.chinese_checkers.comms.Message.FromServer.GameEndMessage;
+import com.chinese_checkers.comms.Message.FromServer.GameStartMessage;
+import com.chinese_checkers.comms.Message.FromServer.NextRoundMessage;
+import com.chinese_checkers.comms.Message.FromServer.ResponseMessage;
+import com.chinese_checkers.comms.Message.Message;
 import com.chinese_checkers.networking.NetworkConnector;
+import com.chinese_checkers.comms.Message.Message.*;
 
 import java.util.HashMap;
 import java.util.Scanner;
@@ -10,19 +17,17 @@ public class Game
 {
 	private boolean isRunning = true;
 	private final CommandParser serverCommandParser = new CommandParser();
-	private final UserCommandParser clientCommandParser = new UserCommandParser();
+	private final ClientCommandParser clientCommandParser = new ClientCommandParser();
 	private NetworkConnector server = null;
 	private final HashMap<Integer, Player> players = new HashMap<>(); // Key: player ID, Value: Player object
 
 	public Game()
 	{
 		// commends are responsible for writing responses to the server
-		serverCommandParser.addCommand("join_request", this::onJoinRequestResponse);
-		serverCommandParser.addCommand("game_start", this::initializePlayers);
-		serverCommandParser.addCommand("game_end", this::onGameEnd);
-		serverCommandParser.addCommand("fetch_players", this::initializePlayers);
-		serverCommandParser.addCommand("fetch_board", this::fetchBoard);
-		serverCommandParser.addCommand("move_player", this::movePlayer);
+		serverCommandParser.addCommand("game_start", msg -> onGameStart((GameStartMessage) msg));
+		serverCommandParser.addCommand("game_end", msg -> onGameEnd((GameEndMessage) msg));
+		serverCommandParser.addCommand("next_round", msg -> onNextRound((NextRoundMessage) msg));
+		serverCommandParser.addCommand("response", msg -> onServerResponse((ResponseMessage) msg));
 
 
 		clientCommandParser.addCommand("connect", this::connect);
@@ -79,11 +84,27 @@ public class Game
 		}
 
 		server = new NetworkConnector(hostname, port, serverCommandParser);
-		server.connect();
+		boolean status = server.connect();
+
+		if (!status)
+		{
+			System.out.println("Failed to connect to the server.");
+			server = null;
+		}
+		else
+		{
+			System.out.println("Connected to the server.");
+		}
 	}
 
 	private void disconnect(String line)
 	{
+		if (server == null)
+		{
+			System.out.println("Not connected to a server.");
+			return;
+		}
+
 		server.send("disconnect");
 		// exits on server response
 		isRunning = false;
@@ -92,29 +113,61 @@ public class Game
 
 	private void requestJoin(String name)
 	{
-		// Send request to the server to join the game
-		server.send("join_game " + name);
+		if (server == null)
+		{
+			System.out.println("Not connected to a server.");
+			return;
+		}
+
+		if (name == null || name.isEmpty())
+		{
+			System.out.println("Invalid name.");
+			return;
+		}
+
+		Message msg = new RequestJoinMessage(name);
+		var json = msg.toJson();
+		if (json == null)
+		{
+			System.out.println("Failed to create JSON message.");
+			return;
+		}
+
+		server.send(json);
 	}
 
-	private void onJoinRequestResponse(String json)
+
+	private void onServerResponse(ResponseMessage json)
 	{
-		if (json.equals("join_request SUCCESS"))
-		{
-			System.out.println("Successfully joined the game.");
-		}
-		else if (json.equals("join_request FAILED"))
-		{
-			System.out.println("Failed to join the game.");
-		}
+		// Parse JSON and handle server response
+
+
+
+		System.out.println("Server response: " + json);
 	}
 
-	private void onGameEnd(String json)
+
+
+	private void onGameStart(GameStartMessage json)
+	{
+		// Parse JSON and start the game
+
+		System.out.println("Game started.");
+	}
+
+	private void onGameEnd(GameEndMessage json)
 	{
 		// Parse JSON and end the game
 
 		System.out.println("Game ended.");
 		isRunning = false;
-		server.send("game_end SUCCESS");
+	}
+
+	private void onNextRound(NextRoundMessage json)
+	{
+		// Parse JSON and start the next round
+
+		System.out.println("Next round started.");
 	}
 
 	private void initializePlayers(String json)
@@ -122,8 +175,6 @@ public class Game
 		// Parse JSON and initialize players
 
 		System.out.println("Initializing players...");
-
-		server.send("fetch_board SUCCESS");
 	}
 
 	private void fetchBoard(String json)
@@ -131,8 +182,6 @@ public class Game
 		// Parse JSON and update board
 
 		System.out.println("Fetching board...");
-
-		server.send("fetch_board SUCCESS");
 	}
 
 	private void movePlayer(String json)
@@ -140,7 +189,5 @@ public class Game
 		// Parse JSON and move player
 
 		System.out.println("Moving player...");
-
-		server.send("move_player SUCCESS");
 	}
 }
