@@ -1,6 +1,7 @@
 package com.chinese_checkers.game;
 
 import com.chinese_checkers.comms.CommandParser;
+import com.chinese_checkers.comms.Message.FromClient.DisconnectMessage;
 import com.chinese_checkers.comms.Message.FromClient.RequestJoinMessage;
 import com.chinese_checkers.comms.Message.FromServer.GameEndMessage;
 import com.chinese_checkers.comms.Message.FromServer.GameStartMessage;
@@ -105,7 +106,17 @@ public class Game
 			return;
 		}
 
-		server.send("disconnect");
+		Message message = new DisconnectMessage();
+		String json = message.toJson();
+
+		if (json == null)
+		{
+			System.out.println("Failed to create JSON message.");
+			return;
+		}
+
+		server.send(json);
+
 		// exits on server response
 		isRunning = false;
 		server.disconnect();
