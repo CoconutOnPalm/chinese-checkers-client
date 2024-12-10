@@ -2,16 +2,16 @@ package com.chinese_checkers.game;
 
 import com.chinese_checkers.comms.CommandParser;
 import com.chinese_checkers.comms.Message.FromClient.DisconnectMessage;
+import com.chinese_checkers.comms.Message.FromClient.MoveRequestMessage;
 import com.chinese_checkers.comms.Message.FromClient.RequestJoinMessage;
-import com.chinese_checkers.comms.Message.FromServer.GameEndMessage;
-import com.chinese_checkers.comms.Message.FromServer.GameStartMessage;
-import com.chinese_checkers.comms.Message.FromServer.NextRoundMessage;
-import com.chinese_checkers.comms.Message.FromServer.ResponseMessage;
+import com.chinese_checkers.comms.Message.FromServer.*;
 import com.chinese_checkers.comms.Message.Message;
 import com.chinese_checkers.networking.NetworkConnector;
-import com.chinese_checkers.comms.Message.Message.*;
+import com.chinese_checkers.networking.ServerResponseManager;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Scanner;
 
 public class Game
@@ -20,20 +20,28 @@ public class Game
 	private final CommandParser serverCommandParser = new CommandParser();
 	private final ClientCommandParser clientCommandParser = new ClientCommandParser();
 	private NetworkConnector server = null;
+	private final ServerResponseManager responseManager = new ServerResponseManager();
+
+
 	private final HashMap<Integer, Player> players = new HashMap<>(); // Key: player ID, Value: Player object
+	private int myPlayerID = -1;
 
 	public Game()
 	{
-		// commends are responsible for writing responses to the server
 		serverCommandParser.addCommand("game_start", msg -> onGameStart((GameStartMessage) msg));
 		serverCommandParser.addCommand("game_end", msg -> onGameEnd((GameEndMessage) msg));
 		serverCommandParser.addCommand("next_round", msg -> onNextRound((NextRoundMessage) msg));
 		serverCommandParser.addCommand("response", msg -> onServerResponse((ResponseMessage) msg));
-
+		serverCommandParser.addCommand("move_player", msg -> onPlayerMoved((MovePlayerMessage) msg));
+		serverCommandParser.addCommand("self_data", msg -> onSelfDataGiven((SelfDataMessage) msg));
 
 		clientCommandParser.addCommand("connect", this::connect);
 		clientCommandParser.addCommand("disconnect", this::disconnect);
+		clientCommandParser.addCommand("exit", this::disconnect); // alias
 		clientCommandParser.addCommand("join", this::requestJoin);
+		clientCommandParser.addCommand("move", this::moveLocally);
+
+		responseManager.addWaitingResponse("move_request");
 	}
 
 	public void run()
@@ -46,6 +54,7 @@ public class Game
 
 		while (isRunning)
 		{
+			System.out.print("> ");
 			String line = scanner.nextLine();
 			clientCommandParser.parseCommand(line);
 		}
@@ -148,13 +157,70 @@ public class Game
 	}
 
 
+	private void moveLocally(String line)
+	{
+		// Usage: move <pawn> <s> <q> <r>
+		String[] args = line.split(" ");
+
+		if (args.length != 4)
+		{
+			System.out.println("Usage: move <pawn> <s> <q> <r>");
+			return;
+		}
+
+		int pawn;
+		int s, q, r;
+
+		try
+		{
+			pawn = Integer.parseInt(args[0]);
+			s = Integer.parseInt(args[1]);
+			q = Integer.parseInt(args[2]);
+			r = Integer.parseInt(args[3]);
+		} catch (NumberFormatException e)
+		{
+			System.out.println("Invalid number format.");
+			return;
+		}
+
+		if (server == null)
+		{
+			System.out.println("Not connected to a server.");
+			return;
+		}
+
+		Message msg = new MoveRequestMessage(pawn, s, q, r);
+		String json = msg.toJson();
+
+		if (json == null)
+		{
+			System.out.println("Failed to create JSON message.");
+			return;
+		}
+
+		server.send(json);
+
+		// await server response
+		String status = responseManager.waitForResponse("move_request", 5000);
+
+		if (status == null || !status.equals("success"))
+		{
+			System.out.println("Move failed.");
+			// TODO: revert move
+			return;
+		}
+	}
+
+
 	private void onServerResponse(ResponseMessage json)
 	{
-		// Parse JSON and handle server response
+		if (json == null)
+		{
+			System.out.println("Invalid server response.");
+			return;
+		}
 
-
-
-		System.out.println("Server response: " + json);
+		responseManager.pushResponse(json);
 	}
 
 
@@ -181,13 +247,6 @@ public class Game
 		System.out.println("Next round started.");
 	}
 
-	private void initializePlayers(String json)
-	{
-		// Parse JSON and initialize players
-
-		System.out.println("Initializing players...");
-	}
-
 	private void fetchBoard(String json)
 	{
 		// Parse JSON and update board
@@ -195,10 +254,28 @@ public class Game
 		System.out.println("Fetching board...");
 	}
 
-	private void movePlayer(String json)
+	private void onPlayerMoved(MovePlayerMessage json)
 	{
-		// Parse JSON and move player
+		int playerID = json.playerID;
+		int pawnID = json.pawnID;
+		int s = json.s;
+		int q = json.q;
+		int r = json.r;
 
-		System.out.println("Moving player...");
+		if (playerID == myPlayerID)
+		{
+			// check if this pawn is at the correct position
+			// if not, do what the server says
+			return;
+		}
+
+		System.out.println("Moving player ID=" + playerID + ": pawn ID=" + pawnID + " to (" + s + ", " + q + ", " + r + ")");
+	}
+
+	private void onSelfDataGiven(SelfDataMessage json)
+	{
+		myPlayerID = json.getPlayerID();
+
+		System.out.println("Updating data: ID=" + myPlayerID);
 	}
 }

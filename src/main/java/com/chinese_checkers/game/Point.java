@@ -10,7 +10,6 @@ public class Point
 	// ^ C# aka Microsoft Java has properties, but Java somehow still doesn't have them (lame)
 	// NOTE: DO NOT, under any circumstances, add
 	// getS, getQ, getR, setS, setQ, setR methods
-	// it's an abomination, and you should feel bad for even thinking about it, long live C++
 
 	public Point()
 	{

@@ -62,7 +62,7 @@ public class NetworkConnector
 			}
 			catch (final IOException e)
 			{
-				System.out.println("I/O error: " + e);
+				System.out.println("Server not available. Attempt " + (i + 1) + "/" + max_attempts);
 			}
 			finally
 			{
