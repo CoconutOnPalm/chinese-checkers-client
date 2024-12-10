@@ -155,4 +155,9 @@ public class NetworkConnector
 			return null;
 		}
 	}
+
+	public boolean isConnected()
+	{
+		return socket != null && listener.isRunning();
+	}
 }
