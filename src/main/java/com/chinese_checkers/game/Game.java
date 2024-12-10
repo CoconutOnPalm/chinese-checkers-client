@@ -109,6 +109,8 @@ public class Game
 
 	private void disconnect(String line)
 	{
+		System.out.println("Disconnecting from the server...");
+
 		if (server == null)
 		{
 			System.out.println("Not connected to a server.");
@@ -124,7 +126,7 @@ public class Game
 			return;
 		}
 
-		server.send(json);
+		//server.send(json);
 
 		// exits on server response
 		isRunning = false;

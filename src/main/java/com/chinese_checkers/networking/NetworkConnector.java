@@ -100,13 +100,12 @@ public class NetworkConnector
 			return;
 		}
 
-		lock.lock();
 		listener.terminate();
-		lock.unlock();
 
 		try
 		{
-			listener.join();
+			// force disconnect after 2 seconds
+			listener.join(2 * 1000);
 		} catch (InterruptedException e)
 		{
 			System.out.println("Listener thread interrupted");
