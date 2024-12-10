@@ -11,7 +11,7 @@ public class NetworkListener extends Thread
 	private final BufferedReader in;
 	private final ReentrantLock threadLock;
 	private final CommandParser commandParser;
-	private boolean running = true;
+	private boolean running = false;
 
 
 	public NetworkListener(final BufferedReader in, final ReentrantLock threadLock, final CommandParser commandParser)
@@ -25,6 +25,7 @@ public class NetworkListener extends Thread
 	@Override
 	public void run()
 	{
+		running = true;
 		String line;
 
 		try
@@ -62,6 +63,7 @@ public class NetworkListener extends Thread
 		{
 			if (threadLock.isHeldByCurrentThread())
 				threadLock.unlock();
+			running = false;
 		}
 
 		System.out.println("Connection closed");
@@ -70,5 +72,10 @@ public class NetworkListener extends Thread
 	public void terminate()
 	{
 		running = false;
+	}
+
+	public boolean isRunning()
+	{
+		return running;
 	}
 }
