@@ -224,13 +224,17 @@ public class Game
 		server.send(json);
 
 		// await server response
-		String status = responseManager.waitForResponse("move_request", 5000);
+		String status = responseManager.waitForResponse("move_request", 10);
 
 		if (status == null || !status.equals("success"))
 		{
 			System.out.println("Move failed.");
 			// TODO: revert move
 			return;
+		}
+		else
+		{
+			System.out.println("Move successful.");
 		}
 	}
 

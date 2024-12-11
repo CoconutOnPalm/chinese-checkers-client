@@ -32,7 +32,7 @@ public class ServerResponseManager
 		future.complete(response.getMessage());
 	}
 
-	public String waitForResponse(String command, int maxWaitTime)
+	public String waitForResponse(String command, int maxWaitTime_sec)
 	{
 		CompletableFuture<String> future = responseMap.get(command);
 		if (future == null)
@@ -42,7 +42,7 @@ public class ServerResponseManager
 		}
 
 		try {
-			return future.get(maxWaitTime, TimeUnit.SECONDS);
+			return future.get(maxWaitTime_sec, TimeUnit.SECONDS);
 		} catch (Exception e) {
 			System.out.println("[ERROR]: Timeout or interruption while waiting for response");
 			return "timeout";

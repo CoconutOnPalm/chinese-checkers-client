@@ -58,11 +58,19 @@ public class NetworkConnector
 			}
 			catch (final UnknownHostException e)
 			{
-				System.out.println("Unknown host: " + hostname);
+				System.out.println("Unknown host or host did not accept: " + hostname + ". Attempt " + (i + 1) + "/" + max_attempts);
 			}
 			catch (final IOException e)
 			{
 				System.out.println("Server not available. Attempt " + (i + 1) + "/" + max_attempts);
+			}
+			catch (final SecurityException e)
+			{
+				System.out.println("Security error: " + e);
+			}
+			catch (final IllegalArgumentException e)
+			{
+				System.out.println("Invalid port number: " + port);
 			}
 			finally
 			{
