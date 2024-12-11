@@ -87,7 +87,7 @@ public class Game
 			return;
 		}
 
-		if (server != null)
+		if (server != null && server.isConnected())
 		{
 			System.out.println("Already connected to a server. Type 'disconnect' to disconnect.");
 			return;
