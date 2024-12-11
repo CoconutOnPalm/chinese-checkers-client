@@ -14,6 +14,17 @@ public class ClientCommandParser
 
 	public void parseCommand(String line)
 	{
+		if (line == null)
+		{
+			System.out.println("Invalid command");
+			return;
+		}
+
+		if (line.isEmpty())
+		{
+			return;
+		}
+
 		String[] tokens = line.split(" ");
 
 		if (tokens.length == 0)

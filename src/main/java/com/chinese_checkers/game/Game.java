@@ -37,7 +37,7 @@ public class Game
 
 		clientCommandParser.addCommand("connect", this::connect);
 		clientCommandParser.addCommand("disconnect", this::disconnect);
-		clientCommandParser.addCommand("exit", this::disconnect); // alias
+		clientCommandParser.addCommand("exit", this::exit);
 		clientCommandParser.addCommand("join", this::requestJoin);
 		clientCommandParser.addCommand("move", this::moveLocally);
 
@@ -62,11 +62,26 @@ public class Game
 		System.out.println("Exiting game...");
 
 		scanner.close();
-		server.disconnect();
+
+		if (server != null)
+			server.disconnect();
 	}
+
+
+	private void exit(String line)
+	{
+		isRunning = false;
+	}
+
 
 	private void connect(String line)
 	{
+		if (line == null || line.isEmpty())
+		{
+			System.out.println("Invalid connect command.");
+			return;
+		}
+
 		String[] args = line.split(" ");
 
 		if (args.length != 2)
@@ -161,6 +176,12 @@ public class Game
 
 	private void moveLocally(String line)
 	{
+		if (line == null || line.isEmpty())
+		{
+			System.out.println("Invalid move command.");
+			return;
+		}
+
 		// Usage: move <pawn> <s> <q> <r>
 		String[] args = line.split(" ");
 
