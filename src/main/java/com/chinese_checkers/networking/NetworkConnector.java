@@ -7,7 +7,11 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.locks.ReentrantLock;
+
+import com.chinese_checkers.Utils.Expected;
+import com.chinese_checkers.Utils.Unexpected;
 import com.chinese_checkers.comms.CommandParser;
+import com.chinese_checkers.ui.GlobalStageData;
 
 public class NetworkConnector
 {
@@ -23,16 +27,16 @@ public class NetworkConnector
 	private final CommandParser commandParser;
 
 
-	public NetworkConnector(final String hostname, final int port, final CommandParser commandParser)
+	public NetworkConnector(final String hostname, final int port)
 	{
 		this.port = port;
 		this.hostname = hostname;
-		this.commandParser = commandParser;
+		this.commandParser = GlobalStageData.commandParser;
 	}
 
 
 
-	public boolean connect()
+	public Expected<Boolean> connect()
 	{
 		return connect(10, 1000);
 	}
@@ -43,9 +47,11 @@ public class NetworkConnector
 	 * @param max_attempts              Maximum number of attempts to connect
 	 * @param connection_frequency_ms   Frequency of connection attempts in milliseconds
 	 */
-	public boolean connect(final int max_attempts, final int connection_frequency_ms)
+	public Expected<Boolean> connect(final int max_attempts, final int connection_frequency_ms)
 	{
 		boolean success = false;
+		String lastError = null;
+
 		for (int i = 0; i < max_attempts; i++)
 		{
 			try
@@ -58,25 +64,30 @@ public class NetworkConnector
 			}
 			catch (final UnknownHostException e)
 			{
-				System.out.println("Unknown host or host did not accept: " + hostname + ". Attempt " + (i + 1) + "/" + max_attempts);
+				lastError = "Unknown host: " + hostname;
 			}
 			catch (final IOException e)
 			{
-				System.out.println("Server not available. Attempt " + (i + 1) + "/" + max_attempts);
+				lastError = "Server not responding";
 			}
 			catch (final SecurityException e)
 			{
-				System.out.println("Security error: " + e);
+				lastError = "Security error: ";
 			}
 			catch (final IllegalArgumentException e)
 			{
-				System.out.println("Invalid port number: " + port);
+				lastError = "Invalid port number: " + port;
+			}
+			catch (final Exception e)
+			{
+				lastError = "Unknown error: " + e;
 			}
 			finally
 			{
 				try
 				{
 					Thread.sleep(connection_frequency_ms);
+					System.out.println("Connection attempt " + i + " failed: " + lastError);
 				}
 				catch (InterruptedException e)
 				{
@@ -88,13 +99,13 @@ public class NetworkConnector
 		if (!success)
 		{
 			System.out.println("Could not connect to server");
-			return false;
+			return new Unexpected<>(lastError);
 		}
 
 		listener = new NetworkListener(in, lock, commandParser);
 		listener.start();
 
-		return true;
+		return new Expected<>(true);
 	}
 
 	/**
@@ -108,10 +119,21 @@ public class NetworkConnector
 			return;
 		}
 
+		try
+		{
+			//socket.sendUrgentData(0xFF);
+			//socket.shutdownInput();
+			socket.close();
+			in.close();
+		} catch (IOException e)
+		{
+			System.out.println("Error shutting down input: " + e);
+		}
 		listener.terminate();
 
 		try
 		{
+			//listener.join();
 			// force disconnect after 2 seconds
 			listener.join(2 * 1000);
 		} catch (InterruptedException e)

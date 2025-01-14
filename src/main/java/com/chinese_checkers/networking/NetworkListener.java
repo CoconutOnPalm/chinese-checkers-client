@@ -30,29 +30,23 @@ public class NetworkListener extends Thread
 
 		try
 		{
-			line = in.readLine();
+			Message message;
 
-			if (line != null)
+			while (running)
 			{
+				System.out.println("here");
+				line = in.readLine();
+				System.out.println("[debug] Received: " + line);
+
 				threadLock.lock();
-				Message message = Message.fromJson(line);
+				// null or EOF
+				if (line == null)
+					break;
+
+				message = Message.fromJson(line);
 				if (message != null)
 					commandParser.parseCommand(message);
 				threadLock.unlock();
-
-				while (running)
-				{
-					line = in.readLine();
-
-					threadLock.lock();
-					if (line == null)
-						break;
-
-					message = Message.fromJson(line);
-					if (message != null)
-						commandParser.parseCommand(message);
-					threadLock.unlock();
-				}
 			}
 		}
 		catch (IOException e)
@@ -71,6 +65,7 @@ public class NetworkListener extends Thread
 
 	public void terminate()
 	{
+		System.out.println("Terminating listener");
 		running = false;
 	}
 

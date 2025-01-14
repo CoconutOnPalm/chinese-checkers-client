@@ -1,5 +1,7 @@
 package com.chinese_checkers.game;
 
+import com.chinese_checkers.Utils.Expected;
+import com.chinese_checkers.Utils.Unexpected;
 import com.chinese_checkers.comms.CommandParser;
 import com.chinese_checkers.comms.Message.FromClient.DisconnectMessage;
 import com.chinese_checkers.comms.Message.FromClient.MoveRequestMessage;
@@ -8,6 +10,8 @@ import com.chinese_checkers.comms.Message.FromServer.*;
 import com.chinese_checkers.comms.Message.Message;
 import com.chinese_checkers.networking.NetworkConnector;
 import com.chinese_checkers.networking.ServerResponseManager;
+import com.chinese_checkers.ui.GlobalStageData;
+import com.chinese_checkers.ui.UIManager;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -17,17 +21,18 @@ import java.util.Scanner;
 public class Game
 {
 	private boolean isRunning = true;
-	private final CommandParser serverCommandParser = new CommandParser();
-	private final ClientCommandParser clientCommandParser = new ClientCommandParser();
-	private NetworkConnector server = null;
+	private NetworkConnector server = GlobalStageData.networkConnector;
 	private final ServerResponseManager responseManager = new ServerResponseManager();
+	private final UIManager uiManager;
 
 
-	private final HashMap<Integer, Player> players = new HashMap<>(); // Key: player ID, Value: Player object
 	private int myPlayerID = -1;
 
-	public Game()
+	public Game(final UIManager uiManager)
 	{
+		this.uiManager = uiManager;
+
+		CommandParser serverCommandParser = GlobalStageData.commandParser;
 		serverCommandParser.addCommand("game_start", msg -> onGameStart((GameStartMessage) msg));
 		serverCommandParser.addCommand("game_end", msg -> onGameEnd((GameEndMessage) msg));
 		serverCommandParser.addCommand("next_round", msg -> onNextRound((NextRoundMessage) msg));
@@ -35,46 +40,39 @@ public class Game
 		serverCommandParser.addCommand("move_player", msg -> onPlayerMoved((MovePlayerMessage) msg));
 		serverCommandParser.addCommand("self_data", msg -> onSelfDataGiven((SelfDataMessage) msg));
 
-		clientCommandParser.addCommand("connect", this::connect);
-		clientCommandParser.addCommand("disconnect", this::disconnect);
-		clientCommandParser.addCommand("exit", this::exit);
-		clientCommandParser.addCommand("join", this::requestJoin);
-		clientCommandParser.addCommand("move", this::moveLocally);
-
 		responseManager.addWaitingResponse("move_request");
 	}
 
-	public void run()
+
+	public void exit()
 	{
-		Scanner scanner = new Scanner(System.in);
+		System.out.println("Exiting game...");
+	}
 
-		// force connecting first
-		System.out.println("Chinese Checkers Game");
-		System.out.println("Type 'connect <hostname> <port>' to connect to the server.");
 
-		while (isRunning)
+	public Expected<Boolean> connect(String hostname, int port)
+	{
+		if (server != null && server.isConnected())
 		{
-			System.out.print("> ");
-			String line = scanner.nextLine();
-			clientCommandParser.parseCommand(line);
+			System.out.println("Already connected to a server. Type 'disconnect' to disconnect.");
+			return new Unexpected<>("Already connected to a server.");
 		}
 
-		System.out.println("Exiting game...");
+		server = new NetworkConnector(hostname, port);
+		boolean status = false;//server.connect();
 
-		scanner.close();
-
-		if (server != null)
-			server.disconnect();
+		if (!status)
+		{
+			server = null;
+			return new Unexpected<>("Failed to connect to the server.");
+		}
+		else
+		{
+			return new Expected<>(true);
+		}
 	}
 
-
-	private void exit(String line)
-	{
-		isRunning = false;
-	}
-
-
-	private void connect(String line)
+	public void connect(String line)
 	{
 		if (line == null || line.isEmpty())
 		{
@@ -108,8 +106,8 @@ public class Game
 			return;
 		}
 
-		server = new NetworkConnector(hostname, port, serverCommandParser);
-		boolean status = server.connect();
+		server = new NetworkConnector(hostname, port);
+		boolean status = false;//server.connect();
 
 		if (!status)
 		{
@@ -122,7 +120,7 @@ public class Game
 		}
 	}
 
-	private void disconnect(String line)
+	public void disconnect()
 	{
 		System.out.println("Disconnecting from the server...");
 
@@ -148,7 +146,7 @@ public class Game
 		server.disconnect();
 	}
 
-	private void requestJoin(String name)
+	public void requestJoin(String name)
 	{
 		if (server == null)
 		{
@@ -170,11 +168,12 @@ public class Game
 			return;
 		}
 
+		uiManager.addMessage("Requesting to join the game...");
 		server.send(json);
 	}
 
 
-	private void moveLocally(String line)
+	public void moveLocally(String line)
 	{
 		if (line == null || line.isEmpty())
 		{
