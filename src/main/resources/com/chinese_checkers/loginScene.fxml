@@ -20,9 +20,9 @@
                </Label>
                <TextField fx:id="usernameInput" layoutX="55.0" layoutY="132.0" prefHeight="26.0" prefWidth="225.0" AnchorPane.leftAnchor="55.0" AnchorPane.rightAnchor="55.0" />
                <Label layoutX="57.0" layoutY="116.0" text="Username" />
-               <TextField fx:id="hostnameInput" layoutX="55.2" layoutY="194.0" prefHeight="26.0" prefWidth="206.0" AnchorPane.leftAnchor="55.0" AnchorPane.rightAnchor="55.0" />
+               <TextField fx:id="hostnameInput" layoutX="55.2" layoutY="194.0" prefHeight="26.0" prefWidth="206.0" text="localhost" AnchorPane.leftAnchor="55.0" AnchorPane.rightAnchor="55.0" />
                <Label layoutX="58.0" layoutY="178.0" text="Hostname" />
-               <TextField fx:id="portInput" layoutX="56.0" layoutY="237.0" onKeyPressed="#onNumberFieldChanged" prefHeight="26.0" prefWidth="206.0" AnchorPane.leftAnchor="55.0" AnchorPane.rightAnchor="55.0" />
+               <TextField fx:id="portInput" layoutX="56.0" layoutY="237.0" onKeyPressed="#onNumberFieldChanged" prefHeight="26.0" prefWidth="206.0" text="12345" AnchorPane.leftAnchor="55.0" AnchorPane.rightAnchor="55.0" />
                <Label layoutX="58.0" layoutY="221.0" text="Port" />
                <Button fx:id="connectButton" layoutX="90.4" layoutY="287.0" mnemonicParsing="false" onAction="#onConnectToServer" prefHeight="38.0" prefWidth="113.0" text="Connect" AnchorPane.leftAnchor="90.4" AnchorPane.rightAnchor="90.4" />
                <ProgressIndicator fx:id="progressIndicator" layoutX="142.0" layoutY="345.0" prefHeight="34.0" prefWidth="34.0" visible="false" />

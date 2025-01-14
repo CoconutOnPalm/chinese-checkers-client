@@ -191,14 +191,11 @@ public class Game
 		}
 
 		int pawn;
-		int s, q, r;
+		int x = 0, y = 0;
 
 		try
 		{
 			pawn = Integer.parseInt(args[0]);
-			s = Integer.parseInt(args[1]);
-			q = Integer.parseInt(args[2]);
-			r = Integer.parseInt(args[3]);
 		} catch (NumberFormatException e)
 		{
 			System.out.println("Invalid number format.");
@@ -211,7 +208,7 @@ public class Game
 			return;
 		}
 
-		Message msg = new MoveRequestMessage(pawn, s, q, r);
+		Message msg = new MoveRequestMessage(pawn, x, y);
 		String json = msg.toJson();
 
 		if (json == null)
@@ -284,9 +281,8 @@ public class Game
 	{
 		int playerID = json.playerID;
 		int pawnID = json.pawnID;
-		int s = json.s;
-		int q = json.q;
-		int r = json.r;
+		int x = json.x;
+		int y = json.y;
 
 		if (playerID == myPlayerID)
 		{
@@ -295,7 +291,7 @@ public class Game
 			return;
 		}
 
-		System.out.println("Moving player ID=" + playerID + ": pawn ID=" + pawnID + " to (" + s + ", " + q + ", " + r + ")");
+		System.out.println("Moving player ID=" + playerID + ": pawn ID=" + pawnID + " to (" + x + ", " + y + ")");
 	}
 
 	private void onSelfDataGiven(SelfDataMessage json)

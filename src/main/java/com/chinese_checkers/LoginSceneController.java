@@ -42,6 +42,11 @@ public class LoginSceneController
 	public void initialize()
 	{
 		GlobalStageData.commandParser = new CommandParser();
+
+		Platform.runLater(() -> {
+			Stage stage = (Stage) errorLabel.getScene().getWindow();
+			stage.setOnCloseRequest(e -> GlobalStageData.networkConnector.disconnect());
+		});
 	}
 
 
@@ -93,7 +98,7 @@ public class LoginSceneController
 				progressIndicator.setVisible(false);
 				connectButton.setDisable(false);
 
-				if (status.hasValue())
+				if (status.hasValue() && status.getValue())
 				{
 					errorLabel.setText("Connected to the server.");
 					errorLabel.setTextFill(javafx.scene.paint.Color.GREEN);

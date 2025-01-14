@@ -26,6 +26,8 @@ public class NetworkConnector
 	private NetworkListener listener;
 	private final CommandParser commandParser;
 
+	private boolean killed = false;
+
 
 	public NetworkConnector(final String hostname, final int port)
 	{
@@ -52,7 +54,7 @@ public class NetworkConnector
 		boolean success = false;
 		String lastError = null;
 
-		for (int i = 0; i < max_attempts; i++)
+		for (int i = 0; i < max_attempts && !killed; i++)
 		{
 			try
 			{
@@ -96,6 +98,12 @@ public class NetworkConnector
 			}
 		}
 
+		if (killed)
+		{
+			System.out.println("Connection killed");
+			return new Expected<>(false, "Connection killed");
+		}
+
 		if (!success)
 		{
 			System.out.println("Could not connect to server");
@@ -115,7 +123,7 @@ public class NetworkConnector
 	{
 		if (listener == null)
 		{
-			System.out.println("Listener not initialized");
+			killed = true;
 			return;
 		}
 
