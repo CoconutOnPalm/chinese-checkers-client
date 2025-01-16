@@ -2,6 +2,7 @@
 
 <?import javafx.scene.Scene?>
 <?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -10,12 +11,13 @@
 <Scene xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.chinese_checkers.GameSceneController">
     <AnchorPane prefHeight="720.0" prefWidth="1280.0">
       <children>
-         <SplitPane disable="true" dividerPositions="0.25" layoutX="540.0" layoutY="266.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <SplitPane dividerPositions="0.25" layoutX="540.0" layoutY="266.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
            <items>
              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="718.0" prefWidth="310.0">
                   <children>
-                     <VBox fx:id="playerBoard" alignment="TOP_CENTER" layoutX="24.0" layoutY="90.0" minWidth="-Infinity" prefHeight="460.0" prefWidth="268.0" style="-fx-background-color: #ebebeb; -fx-border-color: #000000;" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="24.0" />
-                     <TextArea fx:id="chatlog" editable="false" layoutX="27.2" layoutY="544.0" prefHeight="134.0" prefWidth="263.0" style="-fx-opacity: 0.75;" wrapText="true" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="27.0" AnchorPane.rightAnchor="26.0" />
+                     <VBox fx:id="playerBoard" alignment="TOP_CENTER" layoutX="24.0" layoutY="20.0" minWidth="-Infinity" onMouseClicked="#onMouseClickedCanvas" prefHeight="460.0" prefWidth="268.0" style="-fx-background-color: #ebebeb; -fx-border-color: #000000;" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="24.0" />
+                     <TextArea fx:id="chatlog" editable="false" layoutX="24.0" layoutY="549.0" prefHeight="154.0" prefWidth="268.0" style="-fx-opacity: 0.75;" wrapText="true" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="24.0" />
+                     <Button layoutX="24.0" layoutY="494.0" mnemonicParsing="false" prefHeight="31.0" prefWidth="102.0" text="Skip this round" />
                   </children>
                </AnchorPane>
              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">

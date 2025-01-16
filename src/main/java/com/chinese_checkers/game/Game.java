@@ -1,29 +1,37 @@
 package com.chinese_checkers.game;
 
-import com.chinese_checkers.Utils.Expected;
-import com.chinese_checkers.Utils.Unexpected;
 import com.chinese_checkers.comms.CommandParser;
 import com.chinese_checkers.comms.Message.FromClient.DisconnectMessage;
 import com.chinese_checkers.comms.Message.FromClient.MoveRequestMessage;
 import com.chinese_checkers.comms.Message.FromClient.RequestJoinMessage;
 import com.chinese_checkers.comms.Message.FromServer.*;
 import com.chinese_checkers.comms.Message.Message;
+import com.chinese_checkers.networking.CommandParserWrapper;
 import com.chinese_checkers.networking.NetworkConnector;
 import com.chinese_checkers.networking.ServerResponseManager;
-import com.chinese_checkers.ui.GlobalStageData;
+import com.chinese_checkers.ui.PlayerData;
 import com.chinese_checkers.ui.UIManager;
+import com.chinese_checkers.ui.board.BoardManager;
+import com.chinese_checkers.ui.board.IBoard;
+import com.chinese_checkers.ui.board.builtin.DefaultBoard;
+import com.chinese_checkers.ui.player.Pawn;
+import com.chinese_checkers.ui.player.Player;
+import javafx.geometry.Point2D;
+import javafx.scene.canvas.GraphicsContext;
 
+import java.awt.*;
+import java.sql.SQLOutput;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Scanner;
+import java.util.Map;
 
 public class Game
 {
 	private boolean isRunning = true;
-	private NetworkConnector server = GlobalStageData.networkConnector;
 	private final ServerResponseManager responseManager = new ServerResponseManager();
 	private final UIManager uiManager;
+	private BoardManager boardManager;
+
+	private final Map<Integer, Player> players;
 
 
 	private int myPlayerID = -1;
@@ -31,124 +39,52 @@ public class Game
 	public Game(final UIManager uiManager)
 	{
 		this.uiManager = uiManager;
+		this.players = new HashMap<>();
 
-		CommandParser serverCommandParser = GlobalStageData.commandParser;
-		serverCommandParser.addCommand("game_start", msg -> onGameStart((GameStartMessage) msg));
-		serverCommandParser.addCommand("game_end", msg -> onGameEnd((GameEndMessage) msg));
-		serverCommandParser.addCommand("next_round", msg -> onNextRound((NextRoundMessage) msg));
-		serverCommandParser.addCommand("response", msg -> onServerResponse((ResponseMessage) msg));
-		serverCommandParser.addCommand("move_player", msg -> onPlayerMoved((MovePlayerMessage) msg));
-		serverCommandParser.addCommand("self_data", msg -> onSelfDataGiven((SelfDataMessage) msg));
+
+		CommandParserWrapper.addCommand("game_start", msg -> onGameStart((GameStartMessage) msg));
+		CommandParserWrapper.addCommand("game_end", msg -> onGameEnd((GameEndMessage) msg));
+		CommandParserWrapper.addCommand("next_round", msg -> onNextRound((NextRoundMessage) msg));
+		CommandParserWrapper.addCommand("response", msg -> onServerResponse((ResponseMessage) msg));
+		CommandParserWrapper.addCommand("move_player", msg -> onPlayerMoved((MovePlayerMessage) msg));
+		CommandParserWrapper.addCommand("self_data", msg -> onSelfDataGiven((SelfDataMessage) msg));
 
 		responseManager.addWaitingResponse("move_request");
 	}
 
 
-	public void exit()
+	private void addPlayer(int id, String name)
 	{
-		System.out.println("Exiting game...");
+		players.put(id, new Player(id, name));
+		uiManager.addPlayer(id, name);
 	}
 
 
-	public Expected<Boolean> connect(String hostname, int port)
+	public void renderBoard(GraphicsContext gc, float offsetX, float offsetY)
 	{
-		if (server != null && server.isConnected())
+		if (boardManager == null)
 		{
-			System.out.println("Already connected to a server. Type 'disconnect' to disconnect.");
-			return new Unexpected<>("Already connected to a server.");
+			return;
 		}
 
-		server = new NetworkConnector(hostname, port);
-		boolean status = false;//server.connect();
-
-		if (!status)
-		{
-			server = null;
-			return new Unexpected<>("Failed to connect to the server.");
-		}
-		else
-		{
-			return new Expected<>(true);
-		}
+		boardManager.renderTiles(gc, offsetX, offsetY);
+		this.renderPawns(gc, offsetX, offsetY);
 	}
 
-	public void connect(String line)
+
+	private void renderPawns(GraphicsContext gc, float offsetX, float offsetY)
 	{
-		if (line == null || line.isEmpty())
-		{
-			System.out.println("Invalid connect command.");
-			return;
-		}
-
-		String[] args = line.split(" ");
-
-		if (args.length != 2)
-		{
-			System.out.println("Usage: connect <hostname> <port>");
-			return;
-		}
-
-		String hostname = args[0];
-		int port;
-
-		try
-		{
-			port = Integer.parseInt(args[1]);
-		} catch (NumberFormatException e)
-		{
-			System.out.println("Invalid port number: " + args[1]);
-			return;
-		}
-
-		if (server != null && server.isConnected())
-		{
-			System.out.println("Already connected to a server. Type 'disconnect' to disconnect.");
-			return;
-		}
-
-		server = new NetworkConnector(hostname, port);
-		boolean status = false;//server.connect();
-
-		if (!status)
-		{
-			System.out.println("Failed to connect to the server.");
-			server = null;
-		}
-		else
-		{
-			System.out.println("Connected to the server.");
-		}
+		players.forEach((id, player) -> {
+			player.getPawns().forEach((pawnID, pawn) -> {
+				pawn.draw(gc, 0, 0);
+			});
+		});
 	}
 
-	public void disconnect()
-	{
-		System.out.println("Disconnecting from the server...");
-
-		if (server == null)
-		{
-			System.out.println("Not connected to a server.");
-			return;
-		}
-
-		Message message = new DisconnectMessage();
-		String json = message.toJson();
-
-		if (json == null)
-		{
-			System.out.println("Failed to create JSON message.");
-			return;
-		}
-
-		//server.send(json);
-
-		// exits on server response
-		isRunning = false;
-		server.disconnect();
-	}
 
 	public void requestJoin(String name)
 	{
-		if (server == null)
+		if (!NetworkConnector.isConnected())
 		{
 			System.out.println("Not connected to a server.");
 			return;
@@ -169,7 +105,7 @@ public class Game
 		}
 
 		uiManager.addMessage("Requesting to join the game...");
-		server.send(json);
+		NetworkConnector.send(json);
 	}
 
 
@@ -202,7 +138,7 @@ public class Game
 			return;
 		}
 
-		if (server == null)
+		if (!NetworkConnector.isConnected())
 		{
 			System.out.println("Not connected to a server.");
 			return;
@@ -217,7 +153,7 @@ public class Game
 			return;
 		}
 
-		server.send(json);
+		NetworkConnector.send(json);
 
 		// await server response
 		String status = responseManager.waitForResponse("move_request", 10);
@@ -250,9 +186,28 @@ public class Game
 
 	private void onGameStart(GameStartMessage json)
 	{
-		// Parse JSON and start the game
+		int boardSize = json.getBoardSize();
+		this.boardManager = new BoardManager(new DefaultBoard(new Point2D(uiManager.getCanvasSize().getX() / 2f, uiManager.getCanvasSize().getY() / 2f), 25, boardSize));
 
-		System.out.println("Game started.");
+		IBoard board = boardManager.getBoard();
+
+		json.getPawns().forEach((pos, pawn) -> {
+			int ownerID = pawn.getOwner().getId();
+			int pawnID = pawn.getId();
+			var color = pawn.getOwner().getCorner();
+
+			if (!players.containsKey(ownerID))
+			{
+				System.out.println("[WARNING]: player not present; adding player ID=" + ownerID + ": " + pawn.getOwner().getName());
+				addPlayer(ownerID, pawn.getOwner().getName());
+			}
+
+			Pawn p = new Pawn(pawnID, board.mapPlayerColors().get(color));
+			p.setBoardPosition(pos, board);
+			players.get(ownerID).addPawn(p);
+		});
+
+		uiManager.addMessage("Game started.");
 	}
 
 	private void onGameEnd(GameEndMessage json)
@@ -299,5 +254,10 @@ public class Game
 		myPlayerID = json.getPlayerID();
 
 		System.out.println("Updating data: ID=" + myPlayerID);
+	}
+
+	public BoardManager getBoardManager()
+	{
+		return boardManager;
 	}
 }

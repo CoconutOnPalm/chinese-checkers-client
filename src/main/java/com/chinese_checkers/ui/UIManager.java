@@ -1,5 +1,12 @@
 package com.chinese_checkers.ui;
 
+import com.chinese_checkers.ui.board.BoardManager;
+import com.chinese_checkers.ui.board.IBoardObject;
+import com.chinese_checkers.ui.board.builtin.DefaultBoard;
+import javafx.application.Platform;
+import javafx.geometry.Point2D;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.TextArea;
 
@@ -12,36 +19,43 @@ public class UIManager
 	ChatManager chatManager;
 
 	private VBox playerBoard;
+	private Canvas canvas;
 	Map<Integer, PlayerLabel> playerLabels;
 
-	public UIManager(VBox playerBoard, TextArea chatlog)
+	public UIManager(VBox playerBoard, TextArea chatlog, Canvas canvas)
 	{
 		this.chatManager = new ChatManager(chatlog);
 
 		this.playerBoard = playerBoard;
 		playerLabels = new HashMap<>();
-
-		// Add player labels for testing
-		for (int i = 0; i < 3; i++)
-		{
-			PlayerLabel playerLabel = new PlayerLabel("Player " + i);
-			playerLabels.put(i, playerLabel);
-			playerBoard.getChildren().add(playerLabel);
-		}
+		this.canvas = canvas;
 	}
 
 	public void addPlayer(int playerID, String playerName)
 	{
-		PlayerLabel playerLabel = new PlayerLabel(playerName);
-		playerLabels.put(playerID, playerLabel);
-		playerBoard.getChildren().add(playerLabel);
+		Platform.runLater(() -> {
+			PlayerLabel playerLabel = new PlayerLabel(playerName);
+			playerLabels.put(playerID, playerLabel);
+			playerBoard.getChildren().add(playerLabel);
+		});
+		// PlayerLabel playerLabel = new PlayerLabel(playerName);
+		// playerLabels.put(playerID, playerLabel);
+
+		//Platform.runLater(() -> playerBoard.getChildren().add(playerLabel));
+		// playerBoard.getChildren().add(playerLabel);
 	}
 
 	public void removePlayer(int playerID)
 	{
-		PlayerLabel playerLabel = playerLabels.get(playerID);
-		playerBoard.getChildren().remove(playerLabel);
-		playerLabels.remove(playerID);
+		Platform.runLater(() -> {
+			PlayerLabel playerLabel = playerLabels.get(playerID);
+			playerBoard.getChildren().remove(playerLabel);
+			playerLabels.remove(playerID);
+		});
+
+		// PlayerLabel playerLabel = playerLabels.get(playerID);
+		// playerBoard.getChildren().remove(playerLabel);
+		// playerLabels.remove(playerID);
 	}
 
 	public void selectPlayer(int playerID)
@@ -62,5 +76,10 @@ public class UIManager
 		int minute = time.getMinute();
 
 		chatManager.addMessage("[" + hour + ":" + minute + "]> " + message);
+	}
+
+	public Point2D getCanvasSize()
+	{
+		return new Point2D(canvas.getWidth(), canvas.getHeight());
 	}
 }

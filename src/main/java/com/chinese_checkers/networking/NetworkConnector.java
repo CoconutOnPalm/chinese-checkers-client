@@ -4,43 +4,45 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.chinese_checkers.Utils.Expected;
-import com.chinese_checkers.Utils.Unexpected;
 import com.chinese_checkers.comms.CommandParser;
-import com.chinese_checkers.ui.GlobalStageData;
+import com.chinese_checkers.ui.PlayerData;
 
 public class NetworkConnector
 {
-	private final int port;
-	private final String hostname;
 	private Socket socket;
 
 	private BufferedReader in;
 	private PrintWriter out;
 
-	private final ReentrantLock lock = new ReentrantLock();
 	private NetworkListener listener;
-	private final CommandParser commandParser;
 
 	private boolean killed = false;
 
+	private static final ReentrantLock lock = new ReentrantLock();
+	private static NetworkConnector instance = null;
 
-	public NetworkConnector(final String hostname, final int port)
+
+	NetworkConnector()
 	{
-		this.port = port;
-		this.hostname = hostname;
-		this.commandParser = GlobalStageData.commandParser;
 	}
 
 
-
-	public Expected<Boolean> connect()
+	private static NetworkConnector getInstance()
 	{
-		return connect(10, 1000);
+		if (instance == null)
+			instance = new NetworkConnector();
+		return instance;
+	}
+
+
+	public static boolean connect(final String hostname, final int port) throws ConnectException
+	{
+		return connect(hostname, port, 10, 1000);
 	}
 
 
@@ -49,18 +51,18 @@ public class NetworkConnector
 	 * @param max_attempts              Maximum number of attempts to connect
 	 * @param connection_frequency_ms   Frequency of connection attempts in milliseconds
 	 */
-	public Expected<Boolean> connect(final int max_attempts, final int connection_frequency_ms)
+	public static boolean connect(final String hostname, final int port, final int max_attempts, final int connection_frequency_ms) throws ConnectException
 	{
 		boolean success = false;
 		String lastError = null;
 
-		for (int i = 0; i < max_attempts && !killed; i++)
+		for (int i = 0; i < max_attempts && !getInstance().killed; i++)
 		{
 			try
 			{
-				socket = new Socket(hostname, port);
-				in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				out = new PrintWriter(socket.getOutputStream(), true);
+				getInstance().socket = new Socket(hostname, port);
+				getInstance().in = new BufferedReader(new InputStreamReader(getInstance().socket.getInputStream()));
+				getInstance().out = new PrintWriter(getInstance().socket.getOutputStream(), true);
 				success = true;
 				break;
 			}
@@ -88,8 +90,11 @@ public class NetworkConnector
 			{
 				try
 				{
-					Thread.sleep(connection_frequency_ms);
-					System.out.println("Connection attempt " + i + " failed: " + lastError);
+					if (!success)
+					{
+						Thread.sleep(connection_frequency_ms);
+						System.out.println("Connection attempt " + i + " failed: " + lastError);
+					}
 				}
 				catch (InterruptedException e)
 				{
@@ -98,41 +103,42 @@ public class NetworkConnector
 			}
 		}
 
-		if (killed)
+		if (getInstance().killed)
 		{
 			System.out.println("Connection killed");
-			return new Expected<>(false, "Connection killed");
+			throw new ConnectException("Connection killed");
 		}
 
 		if (!success)
 		{
 			System.out.println("Could not connect to server");
-			return new Unexpected<>(lastError);
+			throw new ConnectException("Could not connect to server");
 		}
 
-		listener = new NetworkListener(in, lock, commandParser);
-		listener.start();
+		getInstance();
+		getInstance().listener = new NetworkListener(getInstance().in, lock);
+		getInstance().listener.start();
 
-		return new Expected<>(true);
+		return true;
 	}
 
 	/**
 	 * @brief Disconnects from the server
 	 */
-	public void disconnect()
+	public static void disconnect()
 	{
+		var listener = getInstance().listener;
+
 		if (listener == null)
 		{
-			killed = true;
+			getInstance().killed = true;
 			return;
 		}
 
 		try
 		{
-			//socket.sendUrgentData(0xFF);
-			//socket.shutdownInput();
-			socket.close();
-			in.close();
+			getInstance().socket.close();
+			getInstance().in.close();
 		} catch (IOException e)
 		{
 			System.out.println("Error shutting down input: " + e);
@@ -141,24 +147,11 @@ public class NetworkConnector
 
 		try
 		{
-			//listener.join();
 			// force disconnect after 2 seconds
 			listener.join(2 * 1000);
 		} catch (InterruptedException e)
 		{
 			System.out.println("Listener thread interrupted");
-		}
-
-		try
-		{
-			if (socket != null)
-				socket.close();
-			if (in != null)
-				in.close();
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
 		}
 	}
 
@@ -167,9 +160,11 @@ public class NetworkConnector
 	 * @brief Sends a message to the server
 	 * @param message   Message to send
 	 */
-	public void send(String message)
+	public static void send(String message)
 	{
-		out.println(message);
+		lock.lock();
+		getInstance().out.println(message);
+		lock.unlock();
 	}
 
 	public String expectResponse(String type)
@@ -193,8 +188,8 @@ public class NetworkConnector
 		}
 	}
 
-	public boolean isConnected()
+	public static boolean isConnected()
 	{
-		return socket != null && listener.isRunning();
+		return getInstance().socket != null && getInstance().listener.isRunning();
 	}
 }

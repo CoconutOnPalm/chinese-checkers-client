@@ -3,7 +3,7 @@ package com.chinese_checkers;
 import com.chinese_checkers.Utils.ErrorDialog;
 import com.chinese_checkers.comms.CommandParser;
 import com.chinese_checkers.networking.NetworkConnector;
-import com.chinese_checkers.ui.GlobalStageData;
+import com.chinese_checkers.ui.PlayerData;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,6 +16,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Objects;
 
 
@@ -41,11 +42,9 @@ public class LoginSceneController
 
 	public void initialize()
 	{
-		GlobalStageData.commandParser = new CommandParser();
-
 		Platform.runLater(() -> {
 			Stage stage = (Stage) errorLabel.getScene().getWindow();
-			stage.setOnCloseRequest(e -> GlobalStageData.networkConnector.disconnect());
+			stage.setOnCloseRequest(e -> NetworkConnector.disconnect());
 		});
 	}
 
@@ -80,7 +79,7 @@ public class LoginSceneController
 		connectButton.setDisable(true);
 		errorLabel.setText("");
 
-		GlobalStageData.username = username;
+		PlayerData.username = username;
 		Thread thread = getConnectionThread(hostname, port);
 		thread.start();
 	}
@@ -88,17 +87,28 @@ public class LoginSceneController
 
 	private Thread getConnectionThread(String hostname, int port)
 	{
-		GlobalStageData.networkConnector = new NetworkConnector(hostname, port);
-
 		return new Thread(() -> {
-			var status = GlobalStageData.networkConnector.connect();
+
+			boolean status = false;
+			String errorMessage = "";
+
+			try
+			{
+				status = NetworkConnector.connect(hostname, port);
+			} catch (ConnectException e)
+			{
+				errorMessage = e.getMessage();
+			}
+
+			final boolean finalStatus = status;
+			final String finalErrorMessage = errorMessage;
 
 			Platform.runLater(() -> {
 
 				progressIndicator.setVisible(false);
 				connectButton.setDisable(false);
 
-				if (status.hasValue() && status.getValue())
+				if (finalStatus)
 				{
 					errorLabel.setText("Connected to the server.");
 					errorLabel.setTextFill(javafx.scene.paint.Color.GREEN);
@@ -106,7 +116,7 @@ public class LoginSceneController
 					changeScene("/com/chinese_checkers/gameScene.fxml");
 				} else
 				{
-					errorLabel.setText(status.getMessage());
+					errorLabel.setText(finalErrorMessage);
 					errorLabel.setTextFill(javafx.scene.paint.Color.RED);
 				}
 			});
