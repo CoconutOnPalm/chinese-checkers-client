@@ -1,5 +1,6 @@
 package com.chinese_checkers.game;
 
+import com.chinese_checkers.Utils.ErrorDialog;
 import com.chinese_checkers.comms.CommandParser;
 import com.chinese_checkers.comms.Message.FromClient.DisconnectMessage;
 import com.chinese_checkers.comms.Message.FromClient.EndTurnMessage;
@@ -12,6 +13,7 @@ import com.chinese_checkers.networking.CommandParserWrapper;
 import com.chinese_checkers.networking.NetworkConnector;
 import com.chinese_checkers.networking.ServerResponseManager;
 import com.chinese_checkers.ui.PlayerData;
+import com.chinese_checkers.ui.PlayerLabel;
 import com.chinese_checkers.ui.UIManager;
 import com.chinese_checkers.ui.board.BoardManager;
 import com.chinese_checkers.ui.board.IBoard;
@@ -45,7 +47,8 @@ public class Game
 
 
 		CommandParserWrapper.addCommand("game_start", msg -> onGameStart((GameStartMessage) msg));
-		CommandParserWrapper.addCommand("game_end", msg -> onGameEnd((GameEndMessage) msg));
+		//CommandParserWrapper.addCommand("game_end", msg -> onGameEnd((GameEndMessage) msg));
+		CommandParserWrapper.addCommand("announce_winner", msg -> onWinnerAnnounced((AnnounceWinnerMessage) msg));
 		CommandParserWrapper.addCommand("next_round", msg -> onNextRound((NextRoundMessage) msg));
 		CommandParserWrapper.addCommand("next_round", msg -> uiManager.selectPlayer((NextRoundMessage) msg));
 		CommandParserWrapper.addCommand("response", msg -> onServerResponse((ResponseMessage) msg));
@@ -193,7 +196,6 @@ public class Game
 			}
 			case ResponseMessage.Status.GAME_OVER -> {
 				// TODO: fix
-				this.onGameEnd(new GameEndMessage());
 			}
 			case ResponseMessage.Status.ERROR -> {
 				uiManager.addMessage("Server error: " + response.getMessage());
@@ -268,13 +270,7 @@ public class Game
 		uiManager.addMessage("Game started.");
 	}
 
-	private void onGameEnd(GameEndMessage json)
-	{
-		// Parse JSON and end the game
 
-		System.out.println("Game ended.");
-		isRunning = false;
-	}
 
 	private void onNextRound(NextRoundMessage json)
 	{
@@ -330,6 +326,34 @@ public class Game
 
 		System.out.println("Updating data: ID=" + myPlayerID);
 	}
+
+
+	private void onWinnerAnnounced(AnnounceWinnerMessage json)
+	{
+		Player winner = players.get(json.getPlayerID());
+
+		if (winner == null)
+		{
+			System.out.println("[ERROR]: winner does not exist.");
+			return;
+		}
+
+		String numberEnding = switch (json.getPlayerID())
+		{
+			case 1 -> "st";
+			case 2 -> "nd";
+			case 3 -> "rd";
+			default -> "th";
+		};
+
+		uiManager.addMessage("Player " + winner.getName() + " has taken " + json.getPlayerID() + numberEnding + " place.");
+
+		if (winner.getId() == myPlayerID)
+		{
+			uiManager.disableUI(true);
+		}
+	}
+
 
 	public BoardManager getBoardManager()
 	{

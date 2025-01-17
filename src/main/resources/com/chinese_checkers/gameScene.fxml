@@ -17,7 +17,7 @@
                   <children>
                      <VBox fx:id="playerBoard" alignment="TOP_CENTER" layoutX="24.0" layoutY="20.0" minWidth="-Infinity" onMouseClicked="#onMouseClickedCanvas" prefHeight="460.0" prefWidth="268.0" style="-fx-background-color: #ebebeb; -fx-border-color: #000000;" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="24.0" />
                      <TextArea fx:id="chatlog" editable="false" layoutX="24.0" layoutY="549.0" prefHeight="162.0" prefWidth="268.0" style="-fx-opacity: 0.75;" wrapText="true" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="24.0" AnchorPane.rightAnchor="24.0" />
-                     <Button layoutX="24.0" layoutY="494.0" mnemonicParsing="false" onMouseClicked="#onNextRoundButtonClicked" prefHeight="31.0" prefWidth="102.0" text="Skip this round" />
+                     <Button fx:id="skipRoundButton" layoutX="24.0" layoutY="494.0" mnemonicParsing="false" onMouseClicked="#onNextRoundButtonClicked" prefHeight="31.0" prefWidth="102.0" text="Skip this round" />
                   </children>
                </AnchorPane>
              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">

@@ -7,35 +7,43 @@ import com.chinese_checkers.ui.board.builtin.DefaultBoard;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.TextArea;
+import jdk.jfr.consumer.RecordedEvent;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class UIManager
 {
+	private static final ReentrantLock lock = new ReentrantLock();
+
 	ChatManager chatManager;
 
 	private VBox playerBoard;
 	private Canvas canvas;
+	private Button skipRoundButton;
 	Map<Integer, PlayerLabel> playerLabels;
 	int currentlySelected = -1;
 
-	public UIManager(VBox playerBoard, TextArea chatlog, Canvas canvas)
+	public UIManager(VBox playerBoard, TextArea chatlog, Canvas canvas, Button skipRoundButton)
 	{
 		this.chatManager = new ChatManager(chatlog);
 
 		this.playerBoard = playerBoard;
 		playerLabels = new HashMap<>();
 		this.canvas = canvas;
+		this.skipRoundButton = skipRoundButton;
 	}
 
 	public void addPlayer(int playerID, String playerName)
 	{
 		Platform.runLater(() -> {
+			lock.lock();
 			PlayerLabel playerLabel = new PlayerLabel(playerName);
 			playerLabels.put(playerID, playerLabel);
 			playerBoard.getChildren().add(playerLabel);
@@ -44,6 +52,8 @@ public class UIManager
 			{
 				playerLabel.setSelected(true);
 			}
+
+			lock.unlock();
 		});
 		// PlayerLabel playerLabel = new PlayerLabel(playerName);
 		// playerLabels.put(playerID, playerLabel);
@@ -54,11 +64,14 @@ public class UIManager
 
 	private void addGhostPlayer(int playerID, String playerName)
 	{
+		lock.lock();
 		// if player not yet added, add an empty label
 		if (playerLabels.containsKey(playerID))
 			return;
 
 		playerLabels.put(playerID, new PlayerLabel(playerName));
+
+		lock.unlock();
 	}
 
 	public void removePlayer(int playerID)
@@ -76,16 +89,21 @@ public class UIManager
 
 	public void selectPlayer(int playerID)
 	{
+		lock.lock();
+
 		for (PlayerLabel playerLabel : playerLabels.values())
 		{
 			playerLabel.setSelected(false);
 		}
 
 		playerLabels.get(playerID).setSelected(true);
+
+		lock.unlock();
 	}
 
 	public void selectPlayer(NextRoundMessage json)
 	{
+		lock.lock();
 		int currentPlayerID = json.getCurrentPlayerID();
 
 		for (PlayerLabel playerLabel : playerLabels.values())
@@ -100,6 +118,8 @@ public class UIManager
 
 		currentlySelected = currentPlayerID;
 		playerLabels.get(currentPlayerID).setSelected(true);
+
+		lock.unlock();
 	}
 
 
@@ -110,6 +130,13 @@ public class UIManager
 		int minute = time.getMinute();
 
 		chatManager.addMessage("[" + hour + ":" + minute + "]> " + message);
+	}
+
+
+	public void disableUI(boolean block)
+	{
+		canvas.setDisable(block);
+		skipRoundButton.setDisable(block);
 	}
 
 	public Point2D getCanvasSize()
