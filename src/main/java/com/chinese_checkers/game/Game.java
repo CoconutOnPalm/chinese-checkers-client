@@ -149,7 +149,7 @@ public class Game
 		NetworkConnector.send(json);
 
 		// await server response
-		ResponseMessage response = responseManager.waitForResponse("move_request", 3);
+		ResponseMessage response = responseManager.waitForResponse("move_request", 10);
 
 		if (response == null)
 		{
@@ -168,7 +168,7 @@ public class Game
 			return;
 		}
 
-		System.out.println('{' + response.getStatus().toString() + '}');
+		System.out.println('{' + response.getStatus().toString() + " : " + response.getMessage() + '}');
 
 		//	SUCCESS,
 		//  SUCCESS_JUMP,
@@ -183,7 +183,7 @@ public class Game
 		switch (response.getStatus())
 		{
 			case ResponseMessage.Status.SUCCESS -> {
-
+				System.out.println("Move successful.");
 			}
 			case ResponseMessage.Status.FAILURE -> {
 				uiManager.addMessage("Invalid move: " + response.getMessage());

@@ -9,8 +9,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class ServerResponseManager
 {
@@ -38,15 +40,23 @@ public class ServerResponseManager
 		CompletableFuture<ResponseMessage> future = responseMap.get(command);
 		if (future == null)
 		{
-			//System.out.println("DEBUG: Command not found: " + command);
+			System.out.println("DEBUG: Command not found: " + command);
 			return new ResponseMessage(command, ResponseMessage.Status.FAILURE, "future failed");
 		}
 
 		try {
-			return future.get(maxWaitTime_sec, TimeUnit.SECONDS);
-		} catch (Exception e) {
+			ResponseMessage msg = future.get(maxWaitTime_sec, TimeUnit.SECONDS);
+			System.out.println("> [DEBUG]: Received response: " + msg.getToWhatAction() + " " + msg.getStatus() + " " + msg.getMessage() + " <");
+			return msg;
+		} catch (TimeoutException e) {
 			System.out.println("[ERROR]: Timeout or interruption while waiting for response");
 			return new ResponseMessage(command, ResponseMessage.Status.FAILURE, "timeout");
+		} catch (CancellationException e) {
+			System.out.println("[ERROR]: Future was cancelled");
+			return new ResponseMessage(command, ResponseMessage.Status.FAILURE, "cancelled");
+		} catch (Exception e) {
+			System.out.println("[ERROR]: Exception while waiting for response: " + e.getMessage());
+			return new ResponseMessage(command, ResponseMessage.Status.FAILURE, "exception");
 		}
 	}
 }
