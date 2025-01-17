@@ -249,6 +249,8 @@ public class Game
 		int boardSize = json.getBoardSize();
 		this.boardManager = new BoardManager(new DefaultBoard(new Point2D(uiManager.getCanvasSize().getX() / 2f, uiManager.getCanvasSize().getY() / 2f), 25, boardSize));
 
+		String variant = json.getVariant();
+
 		IBoard board = boardManager.getBoard();
 
 		json.getPawns().forEach((pos, pawn) -> {
@@ -268,6 +270,7 @@ public class Game
 		});
 
 		uiManager.addMessage("Game started.");
+		uiManager.addMessage("Variant: " + variant);
 	}
 
 
