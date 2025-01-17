@@ -129,7 +129,10 @@ public class UIManager
 		int hour = time.getHour();
 		int minute = time.getMinute();
 
-		chatManager.addMessage("[" + hour + ":" + minute + "]> " + message);
+		if (minute < 10)
+			chatManager.addMessage("[" + hour + ":0" + minute + "]> " + message);
+		else
+			chatManager.addMessage("[" + hour + ":" + minute + "]> " + message);
 	}
 
 
