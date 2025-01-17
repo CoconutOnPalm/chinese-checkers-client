@@ -5,6 +5,7 @@ import com.chinese_checkers.networking.NetworkConnector;
 import com.chinese_checkers.ui.PlayerData;
 import com.chinese_checkers.ui.UIManager;
 import com.chinese_checkers.ui.board.IBoardObject;
+import com.chinese_checkers.ui.player.Pawn;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
@@ -12,6 +13,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GameSceneController
 {
@@ -25,6 +29,11 @@ public class GameSceneController
 
 	Game game;
 	UIManager uiManager;
+
+	Pawn hoveredPawn = null; // for performance upgrade (*laughing emoji*)
+	IBoardObject hoveredTile = null;
+
+	Pawn selectedPawn = null;
 
 
 	public void initialize()
@@ -43,29 +52,102 @@ public class GameSceneController
 		Platform.runLater(() -> {
 			Stage stage = (Stage) playerBoard.getScene().getWindow();
 			stage.setOnCloseRequest(e -> NetworkConnector.disconnect());
+			stage.setTitle("Chinese Checkers - " + PlayerData.username);
 		});
 
 	}
 
 	public void checkBoardMouseHover(MouseEvent event)
 	{
+		// tile
 		if (game.getBoardManager() == null)
 			return;
 
 		var board = game.getBoardManager().getBoard();
-		board.getTiles().values().forEach(tile -> tile.setSelected(false));
+		board.getTiles().values().forEach(tile -> tile.setHovered(false));
+		hoveredTile = null;
 
 		IBoardObject tile = board.getTileByCanvasPosition((float)event.getX(), (float)event.getY());
 		if (tile != null)
 		{
-			tile.setSelected(true);
+			tile.setHovered(true);
+			hoveredTile = tile;
 		}
+
+		// pawn
+		hoveredPawn = null;
+		game.getPlayers().forEach((id, player) -> {
+			player.getPawns().forEach((pos, pawn) -> {
+				pawn.setHovered(false);
+			});
+		});
+
+		game.getPlayers().forEach((id, player) -> {
+			player.getPawns().forEach((pos, pawn) -> {
+				if (pawn != null && pawn.contains((float)event.getX(), (float)event.getY()))
+				{
+					pawn.setHovered(true);
+					hoveredPawn = pawn;
+				}
+			});
+		});
 	}
 
 
 	public void onMouseClickedCanvas(MouseEvent event)
 	{
-		System.out.println("Canvas clicked at (" + event.getX() + ", " + event.getY() + ")");
+		if (hoveredTile == null || game.getBoardManager() == null)
+		{
+			if (selectedPawn != null)
+			{
+				selectedPawn.setBorder(false);
+				selectedPawn = null;
+			}
+
+			return;
+		}
+
+		if (selectedPawn == null)
+		{
+			if (hoveredPawn == null || hoveredPawn.getOwnerID() != PlayerData.id)
+				return;
+
+			selectedPawn = hoveredPawn;
+			selectedPawn.setBorder(true);
+		}
+		else
+		{
+			var pawns = game.getPlayers().get(PlayerData.id).getPawns();
+
+			// select your other pawn
+			if (pawns.containsValue(hoveredPawn))
+			{
+				selectedPawn.setBorder(false);
+				selectedPawn = hoveredPawn;
+				selectedPawn.setBorder(true);
+				return;
+			}
+
+			// check if the tile is not occupied
+
+			for (var player : game.getPlayers().values())
+			{
+				for (var pawn : player.getPawns().values())
+				{
+					if (pawn.getBoardPosition().equals(hoveredTile.getBoardPosition()))
+					{
+						return;
+					}
+				}
+			}
+
+			selectedPawn.setBorder(false);
+			System.out.println("Moving pawn " + selectedPawn.getID() + " to " + hoveredTile.getBoardPosition());
+			game.moveLocally(selectedPawn, hoveredTile.getBoardPosition());
+
+			selectedPawn = null;
+			// TODO: notify Game class
+		}
 	}
 
 	public void onMouseMovedCanvas(MouseEvent event)

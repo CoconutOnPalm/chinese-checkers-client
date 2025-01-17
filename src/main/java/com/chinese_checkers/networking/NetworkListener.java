@@ -49,7 +49,8 @@ public class NetworkListener extends Thread
 		}
 		catch (IOException e)
 		{
-			System.out.println("I/O error: " + e);
+			// Socket closed
+			//System.out.println("I/O error: " + e);
 		}
 		finally
 		{

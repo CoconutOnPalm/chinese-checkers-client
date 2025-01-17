@@ -77,6 +77,7 @@ public class BoardTile extends Polygon implements IDrawable, IBoardObject
 			if (x < Math.min(A.getX(), B.getX()) || x > Math.max(A.getX(), B.getX()))
 				continue;
 
+
 			if (A.getX() == B.getX())
 			{
 				if (x <= A.getX())
@@ -118,12 +119,12 @@ public class BoardTile extends Polygon implements IDrawable, IBoardObject
 	@Override
 	public Position getBoardPosition()
 	{
-		return new Position((int) this.position.getX(), (int) this.position.getY());
+		return boardPosition;
 	}
 
 
 	@Override
-	public void setSelected(final boolean selected)
+	public void setHovered(final boolean selected)
 	{
 		this.setFill(selected ? selectedTileColor : blankTileColor);
 	}

@@ -1,5 +1,6 @@
 package com.chinese_checkers.ui;
 
+import com.chinese_checkers.comms.Message.FromServer.NextRoundMessage;
 import com.chinese_checkers.ui.board.BoardManager;
 import com.chinese_checkers.ui.board.IBoardObject;
 import com.chinese_checkers.ui.board.builtin.DefaultBoard;
@@ -21,6 +22,7 @@ public class UIManager
 	private VBox playerBoard;
 	private Canvas canvas;
 	Map<Integer, PlayerLabel> playerLabels;
+	int currentlySelected = -1;
 
 	public UIManager(VBox playerBoard, TextArea chatlog, Canvas canvas)
 	{
@@ -37,12 +39,26 @@ public class UIManager
 			PlayerLabel playerLabel = new PlayerLabel(playerName);
 			playerLabels.put(playerID, playerLabel);
 			playerBoard.getChildren().add(playerLabel);
+
+			if (currentlySelected == playerID)
+			{
+				playerLabel.setSelected(true);
+			}
 		});
 		// PlayerLabel playerLabel = new PlayerLabel(playerName);
 		// playerLabels.put(playerID, playerLabel);
 
 		//Platform.runLater(() -> playerBoard.getChildren().add(playerLabel));
 		// playerBoard.getChildren().add(playerLabel);
+	}
+
+	private void addGhostPlayer(int playerID, String playerName)
+	{
+		// if player not yet added, add an empty label
+		if (playerLabels.containsKey(playerID))
+			return;
+
+		playerLabels.put(playerID, new PlayerLabel(playerName));
 	}
 
 	public void removePlayer(int playerID)
@@ -66,6 +82,24 @@ public class UIManager
 		}
 
 		playerLabels.get(playerID).setSelected(true);
+	}
+
+	public void selectPlayer(NextRoundMessage json)
+	{
+		int currentPlayerID = json.getCurrentPlayerID();
+
+		for (PlayerLabel playerLabel : playerLabels.values())
+		{
+			playerLabel.setSelected(false);
+		}
+
+		if (!playerLabels.containsKey(currentPlayerID))
+		{
+			addGhostPlayer(currentPlayerID, "");
+		}
+
+		currentlySelected = currentPlayerID;
+		playerLabels.get(currentPlayerID).setSelected(true);
 	}
 
 

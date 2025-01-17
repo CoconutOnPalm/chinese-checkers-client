@@ -6,6 +6,7 @@ import com.chinese_checkers.comms.Message.FromClient.MoveRequestMessage;
 import com.chinese_checkers.comms.Message.FromClient.RequestJoinMessage;
 import com.chinese_checkers.comms.Message.FromServer.*;
 import com.chinese_checkers.comms.Message.Message;
+import com.chinese_checkers.comms.Position;
 import com.chinese_checkers.networking.CommandParserWrapper;
 import com.chinese_checkers.networking.NetworkConnector;
 import com.chinese_checkers.networking.ServerResponseManager;
@@ -19,8 +20,6 @@ import com.chinese_checkers.ui.player.Player;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 
-import java.awt.*;
-import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +32,7 @@ public class Game
 
 	private final Map<Integer, Player> players;
 
+	private int currentPlayerID = -1; // id of the player whose turn it is
 
 	private int myPlayerID = -1;
 
@@ -45,6 +45,7 @@ public class Game
 		CommandParserWrapper.addCommand("game_start", msg -> onGameStart((GameStartMessage) msg));
 		CommandParserWrapper.addCommand("game_end", msg -> onGameEnd((GameEndMessage) msg));
 		CommandParserWrapper.addCommand("next_round", msg -> onNextRound((NextRoundMessage) msg));
+		CommandParserWrapper.addCommand("next_round", msg -> uiManager.selectPlayer((NextRoundMessage) msg));
 		CommandParserWrapper.addCommand("response", msg -> onServerResponse((ResponseMessage) msg));
 		CommandParserWrapper.addCommand("move_player", msg -> onPlayerMoved((MovePlayerMessage) msg));
 		CommandParserWrapper.addCommand("self_data", msg -> onSelfDataGiven((SelfDataMessage) msg));
@@ -57,6 +58,11 @@ public class Game
 	{
 		players.put(id, new Player(id, name));
 		uiManager.addPlayer(id, name);
+	}
+
+	public Map<Integer, Player> getPlayers()
+	{
+		return players;
 	}
 
 
@@ -109,64 +115,93 @@ public class Game
 	}
 
 
-	public void moveLocally(String line)
+	public void moveLocally(Pawn pawn, Position newPosition)
 	{
-		if (line == null || line.isEmpty())
+		if (boardManager == null)
+			return;
+
+		if (currentPlayerID != myPlayerID)
 		{
-			System.out.println("Invalid move command.");
+			uiManager.addMessage("Not your turn.");
 			return;
 		}
 
-		// Usage: move <pawn> <s> <q> <r>
-		String[] args = line.split(" ");
 
-		if (args.length != 4)
-		{
-			System.out.println("Usage: move <pawn> <s> <q> <r>");
-			return;
-		}
-
-		int pawn;
-		int x = 0, y = 0;
-
-		try
-		{
-			pawn = Integer.parseInt(args[0]);
-		} catch (NumberFormatException e)
-		{
-			System.out.println("Invalid number format.");
-			return;
-		}
+		Position oldPosition = pawn.getBoardPosition();
+		System.out.println("Old position: " + oldPosition + ", new position: " + newPosition);
+		pawn.setBoardPosition(newPosition, boardManager.getBoard());
 
 		if (!NetworkConnector.isConnected())
 		{
-			System.out.println("Not connected to a server.");
+			uiManager.addMessage("Not connected to a server.");
 			return;
 		}
 
-		Message msg = new MoveRequestMessage(pawn, x, y);
+		Message msg = new MoveRequestMessage(pawn.getID(), newPosition.getX(), newPosition.getY());
 		String json = msg.toJson();
 
 		if (json == null)
 		{
-			System.out.println("Failed to create JSON message.");
+			uiManager.addMessage("Failed to communicate with server.");
 			return;
 		}
 
 		NetworkConnector.send(json);
 
 		// await server response
-		String status = responseManager.waitForResponse("move_request", 10);
+		ResponseMessage response = responseManager.waitForResponse("move_request", 3);
 
-		if (status == null || !status.equals("success"))
+		if (response == null)
 		{
-			System.out.println("Move failed.");
-			// TODO: revert move
+			uiManager.addMessage("Server did not respond.");
+			pawn.setBoardPosition(oldPosition, boardManager.getBoard());
 			return;
 		}
-		else
+
+		if (response.getStatus() == null)
 		{
-			System.out.println("Move successful.");
+			if (response.getMessage() != null)
+				System.out.println("[E1]: Server response: " + response.getMessage());
+
+			uiManager.addMessage("Invalid server response.");
+			pawn.setBoardPosition(oldPosition, boardManager.getBoard());
+			return;
+		}
+
+		System.out.println('{' + response.getStatus().toString() + '}');
+
+		//	SUCCESS,
+		//  SUCCESS_JUMP,
+		//  INVALID_MOVE,
+		//  OCCUPIED,
+		//  OUT_OF_BOUNDS,
+		//  INVALID_PAWN,
+		//  NOT_YOUR_TURN,
+		//  GAME_OVER,
+		//  UNREACHABLE,
+		//  OUT_OF_GOAL
+		switch (response.getStatus())
+		{
+			case ResponseMessage.Status.SUCCESS -> {
+
+			}
+			case ResponseMessage.Status.FAILURE -> {
+				uiManager.addMessage("Invalid move: " + response.getMessage());
+				pawn.setBoardPosition(oldPosition, boardManager.getBoard());
+			}
+			case ResponseMessage.Status.GAME_OVER -> {
+				// TODO: fix
+				this.onGameEnd(new GameEndMessage());
+			}
+			case ResponseMessage.Status.ERROR -> {
+				uiManager.addMessage("Server error: " + response.getMessage());
+				pawn.setBoardPosition(oldPosition, boardManager.getBoard());
+			}
+			default -> {
+				uiManager.addMessage("Unknown server response.");
+				pawn.setBoardPosition(oldPosition, boardManager.getBoard());
+			}
+
 		}
 	}
 
@@ -202,7 +237,7 @@ public class Game
 				addPlayer(ownerID, pawn.getOwner().getName());
 			}
 
-			Pawn p = new Pawn(pawnID, board.mapPlayerColors().get(color));
+			Pawn p = new Pawn(pawnID, ownerID, board.mapPlayerColors().get(color));
 			p.setBoardPosition(pos, board);
 			players.get(ownerID).addPawn(p);
 		});
@@ -220,9 +255,7 @@ public class Game
 
 	private void onNextRound(NextRoundMessage json)
 	{
-		// Parse JSON and start the next round
-
-		System.out.println("Next round started.");
+		currentPlayerID = json.getCurrentPlayerID();
 	}
 
 	private void fetchBoard(String json)
@@ -239,19 +272,38 @@ public class Game
 		int x = json.x;
 		int y = json.y;
 
-		if (playerID == myPlayerID)
+		if (!players.containsKey(playerID))
 		{
-			// check if this pawn is at the correct position
-			// if not, do what the server says
+			System.out.println("[ERROR]: player does not exist.");
 			return;
 		}
 
-		System.out.println("Moving player ID=" + playerID + ": pawn ID=" + pawnID + " to (" + x + ", " + y + ")");
+		Player player = players.get(playerID);
+		if (!player.getPawns().containsKey(pawnID))
+		{
+			System.out.println("[ERROR]: pawn does not exist.");
+			return;
+		}
+
+		Pawn pawn = player.getPawns().get(pawnID);
+
+		if (playerID == myPlayerID)
+		{
+			if (pawn.getBoardPosition().equals(new Position(x, y)))
+			{
+				System.out.println("[DEBUG]: pawn already in position (good).");
+			}
+
+			return;
+		}
+
+		pawn.setBoardPosition(new Position(x, y), boardManager.getBoard());
 	}
 
 	private void onSelfDataGiven(SelfDataMessage json)
 	{
 		myPlayerID = json.getPlayerID();
+		PlayerData.id = myPlayerID;
 
 		System.out.println("Updating data: ID=" + myPlayerID);
 	}

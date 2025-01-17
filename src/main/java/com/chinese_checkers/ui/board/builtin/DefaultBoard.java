@@ -39,8 +39,9 @@ public class DefaultBoard implements IBoard
 		{
 			for (int x = -p; x <= p * 2 + (y - p); x++)
 			{
+				int _y = -y; // correct the y position
 				Position boardPosition = new Position(x, y);
-				Point2D position = new Point2D(r * (x * sqrt3_div2 * 2 - y * sqrt3_div2) + center.getX(), 3. / 2. * r * y + center.getY());
+				Point2D position = new Point2D(r * (x * sqrt3_div2 * 2 - y * sqrt3_div2) + center.getX(), 3. / 2. * r * _y + center.getY());
 				positionMap.put(boardPosition, position);
 				tiles.put(boardPosition, new BoardTile(position, boardPosition, TILE_RADIUS));
 			}
@@ -53,8 +54,9 @@ public class DefaultBoard implements IBoard
 		{
 			for (int x = p; x >= -(p * 2) + (y + p); x--)
 			{
+				int _y = -y; // correct the y position
 				Position boardPosition = new Position(x, y);
-				Point2D position = new Point2D(r * (x * sqrt3_div2 * 2 - y * sqrt3_div2) + center.getX(), 3. / 2. * r * y + center.getY());
+				Point2D position = new Point2D(r * (x * sqrt3_div2 * 2 - y * sqrt3_div2) + center.getX(), 3. / 2. * r * _y + center.getY());
 				if (!tiles.containsKey(boardPosition))
 				{
 					positionMap.put(boardPosition, position);

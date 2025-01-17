@@ -2,6 +2,7 @@ package com.chinese_checkers.networking;
 
 import com.chinese_checkers.Utils.Pair;
 import com.chinese_checkers.comms.Message.FromServer.ResponseMessage;
+import com.chinese_checkers.comms.Message.Message;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -13,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ServerResponseManager
 {
-	private final Map<String, CompletableFuture<String>> responseMap = new HashMap<>();
+	private final Map<String, CompletableFuture<ResponseMessage>> responseMap = new HashMap<>();
 
 
 	public void addWaitingResponse(String command)
@@ -23,29 +24,29 @@ public class ServerResponseManager
 
 	public void pushResponse(ResponseMessage response)
 	{
-		CompletableFuture<String> future = responseMap.get(response.getToWhatAction());
+		CompletableFuture<ResponseMessage> future = responseMap.get(response.getToWhatAction());
 		if (future == null)
 		{
 			//System.out.println("DEBUG: Command not found: " + response.getToWhatAction());
 			return;
 		}
-		future.complete(response.getMessage());
+		future.complete(response);
 	}
 
-	public String waitForResponse(String command, int maxWaitTime_sec)
+	public ResponseMessage waitForResponse(String command, int maxWaitTime_sec)
 	{
-		CompletableFuture<String> future = responseMap.get(command);
+		CompletableFuture<ResponseMessage> future = responseMap.get(command);
 		if (future == null)
 		{
 			//System.out.println("DEBUG: Command not found: " + command);
-			return "error";
+			return new ResponseMessage(command, ResponseMessage.Status.FAILURE, "future failed");
 		}
 
 		try {
 			return future.get(maxWaitTime_sec, TimeUnit.SECONDS);
 		} catch (Exception e) {
 			System.out.println("[ERROR]: Timeout or interruption while waiting for response");
-			return "timeout";
+			return new ResponseMessage(command, ResponseMessage.Status.FAILURE, "timeout");
 		}
 	}
 }
