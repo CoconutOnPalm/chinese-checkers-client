@@ -2,6 +2,7 @@ package com.chinese_checkers.game;
 
 import com.chinese_checkers.comms.CommandParser;
 import com.chinese_checkers.comms.Message.FromClient.DisconnectMessage;
+import com.chinese_checkers.comms.Message.FromClient.EndTurnMessage;
 import com.chinese_checkers.comms.Message.FromClient.MoveRequestMessage;
 import com.chinese_checkers.comms.Message.FromClient.RequestJoinMessage;
 import com.chinese_checkers.comms.Message.FromServer.*;
@@ -22,6 +23,7 @@ import javafx.scene.canvas.GraphicsContext;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class Game
 {
@@ -203,6 +205,27 @@ public class Game
 			}
 
 		}
+	}
+
+
+	public void endTurn()
+	{
+		if (!NetworkConnector.isConnected())
+		{
+			System.out.println("Not connected to a server.");
+			return;
+		}
+
+		Message msg = new EndTurnMessage();
+		String json = msg.toJson();
+
+		if (json == null)
+		{
+			System.out.println("Failed to create JSON message.");
+			return;
+		}
+
+		NetworkConnector.send(json);
 	}
 
 

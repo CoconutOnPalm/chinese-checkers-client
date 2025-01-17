@@ -1,6 +1,8 @@
 package com.chinese_checkers;
 
+import com.chinese_checkers.comms.CommandParser;
 import com.chinese_checkers.game.Game;
+import com.chinese_checkers.networking.CommandParserWrapper;
 import com.chinese_checkers.networking.NetworkConnector;
 import com.chinese_checkers.ui.PlayerData;
 import com.chinese_checkers.ui.UIManager;
@@ -34,6 +36,7 @@ public class GameSceneController
 	IBoardObject hoveredTile = null;
 
 	Pawn selectedPawn = null;
+	Pawn movedPawn = null; // check if player doesn't move other pawn (cheater)
 
 
 	public void initialize()
@@ -54,6 +57,11 @@ public class GameSceneController
 			stage.setOnCloseRequest(e -> NetworkConnector.disconnect());
 			stage.setTitle("Chinese Checkers - " + PlayerData.username);
 		});
+
+		CommandParserWrapper.addCommand("game_start", msg -> this.render());
+		CommandParserWrapper.addCommand("game_end", msg -> this.render());
+		CommandParserWrapper.addCommand("next_round", msg -> this.render());
+		CommandParserWrapper.addCommand("move_player", msg -> this.render());
 
 	}
 
@@ -107,6 +115,12 @@ public class GameSceneController
 			return;
 		}
 
+		// check if player isn't trying to move another pawn
+//		if (movedPawn != null && movedPawn != hoveredPawn)
+//		{
+//			return;
+//		}
+
 		if (selectedPawn == null)
 		{
 			if (hoveredPawn == null || hoveredPawn.getOwnerID() != PlayerData.id)
@@ -145,6 +159,7 @@ public class GameSceneController
 			System.out.println("Moving pawn " + selectedPawn.getID() + " to " + hoveredTile.getBoardPosition());
 			game.moveLocally(selectedPawn, hoveredTile.getBoardPosition());
 
+			movedPawn = selectedPawn;
 			selectedPawn = null;
 			// TODO: notify Game class
 		}
@@ -154,6 +169,14 @@ public class GameSceneController
 	{
 		this.render();
 	}
+
+
+	@FXML
+	public void onNextRoundButtonClicked(MouseEvent event)
+	{
+		game.endTurn();
+	}
+
 
 	public void render()
 	{
