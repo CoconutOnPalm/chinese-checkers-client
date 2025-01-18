@@ -212,7 +212,7 @@ public class GameSceneController
 		try
 		{
 			scene = FXMLLoader.load(Objects.requireNonNull(getClass().getResource(fxmlPath)));
-		} catch (IOException e)
+		} catch (final IOException e)
 		{
 			ErrorDialog.show("FXML ERROR", "Could not load the gameScene.fxml file.");
 			throw new RuntimeException(e);

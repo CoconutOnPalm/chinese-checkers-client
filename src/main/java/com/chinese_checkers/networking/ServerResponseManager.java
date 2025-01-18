@@ -15,29 +15,45 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * The ServerResponseManager class manages the responses received from the server.
+ */
 public class ServerResponseManager
 {
 	private final Map<String, CompletableFuture<ResponseMessage>> responseMap = new HashMap<>();
 	private static final ReentrantLock lock = new ReentrantLock();
 
 
-	public void addWaitingResponse(String command)
+	/**
+	 * @brief Registers a new response command
+	 * @param command	see chinese_checkers.comms.Message for a list of possible commands
+	 */
+	public void addWaitingResponse(final String command)
 	{
 		responseMap.put(command, new CompletableFuture<>());
 	}
 
-	public void pushResponse(ResponseMessage response)
+	/**
+	 * @brief Pushes a response to the response queue
+	 * @param response	the response to push
+	 */
+	public void pushResponse(final ResponseMessage response)
 	{
 		CompletableFuture<ResponseMessage> future = responseMap.get(response.getToWhatAction());
 		if (future == null)
 		{
-			//System.out.println("DEBUG: Command not found: " + response.getToWhatAction());
 			return;
 		}
 		future.complete(response);
 	}
 
-	public ResponseMessage waitForResponse(String command, int maxWaitTime_sec)
+	/**
+	 * @brief Waits for a server response and returns the ResponseMessage json
+	 * @param command	see chinese_checkers.comms.Message for a list of possible commands
+	 * @param maxWaitTime_sec	maximum time to wait for a response. Returns a timeout ResponseMessage if exceeded
+	 * @return	ResponseMessage json
+	 */
+	public ResponseMessage waitForResponse(final String command, final int maxWaitTime_sec)
 	{
 		//lock.lock();
 		CompletableFuture<ResponseMessage> future = responseMap.get(command);
@@ -53,15 +69,15 @@ public class ServerResponseManager
 			System.out.println("> [DEBUG]: Received response: " + msg.getToWhatAction() + " " + msg.getStatus() + " " + msg.getMessage() + " <");
 			//lock.unlock();
 			return msg;
-		} catch (TimeoutException e) {
+		} catch (final TimeoutException e) {
 			System.out.println("[ERROR]: Timeout or interruption while waiting for response");
 			//lock.unlock();
 			return new ResponseMessage(command, ResponseMessage.Status.FAILURE, "timeout");
-		} catch (CancellationException e) {
+		} catch (final CancellationException e) {
 			System.out.println("[ERROR]: Future was cancelled");
 			//lock.unlock();
 			return new ResponseMessage(command, ResponseMessage.Status.FAILURE, "cancelled");
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			System.out.println("[ERROR]: Exception while waiting for response: " + e.getMessage());
 			//lock.unlock();
 			return new ResponseMessage(command, ResponseMessage.Status.FAILURE, "exception");

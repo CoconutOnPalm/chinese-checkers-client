@@ -17,11 +17,20 @@ public class DefaultBoard implements IBoard
 	private float TILE_RADIUS = 25; // default
 	private static final float sqrt3_div2 = (float) Math.sqrt(3) / 2; // sqrt(3) / 2
 
-	private Map<Position, IBoardObject> tiles;
-	private Map<Position, Point2D> positionMap;
+	private final Map<Position, IBoardObject> tiles;
+	private final Map<Position, Point2D> positionMap;
 
 	public DefaultBoard(final Point2D center, final float tileRadius, final int boardSize)
 	{
+		if (tileRadius <= 0)
+		{
+			throw new IllegalArgumentException("Tile radius must be greater than 0");
+		}
+		if (boardSize <= 0)
+		{
+			throw new IllegalArgumentException("Board size must be greater than 0");
+		}
+
 		this.BOARD_RADIUS = boardSize;
 		this.TILE_RADIUS = tileRadius;
 
@@ -73,13 +82,13 @@ public class DefaultBoard implements IBoard
 	}
 
 	@Override
-	public IBoardObject getTile(Position position)
+	public IBoardObject getTile(final Position position)
 	{
 		return tiles.get(position);
 	}
 
 	@Override
-	public IBoardObject getTileByCanvasPosition(float x, float y)
+	public IBoardObject getTileByCanvasPosition(final float x, final float y)
 	{
 		for (var tile : tiles.values())
 		{

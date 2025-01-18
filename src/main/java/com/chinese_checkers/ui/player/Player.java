@@ -16,7 +16,7 @@ public class Player
 		this.pawns = new HashMap<>();
 	}
 
-	public int getId()
+	public int getID()
 	{
 		return id;
 	}

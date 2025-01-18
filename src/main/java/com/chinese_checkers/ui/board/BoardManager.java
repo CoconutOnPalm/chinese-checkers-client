@@ -2,11 +2,14 @@ package com.chinese_checkers.ui.board;
 
 import javafx.scene.canvas.GraphicsContext;
 
+/**
+ * The BoardManager class manages the rendering of the board tiles.
+ */
 public class BoardManager
 {
 	private final IBoard board;
 
-	public BoardManager(IBoard board)
+	public BoardManager(final IBoard board)
 	{
 		this.board = board;
 	}
@@ -17,7 +20,7 @@ public class BoardManager
 	}
 
 
-	public void renderTiles(GraphicsContext gc, float offsetX, float offsetY)
+	public void renderTiles(final GraphicsContext gc, final float offsetX, final float offsetY)
 	{
 		for (var tile : board.getTiles().values())
 		{

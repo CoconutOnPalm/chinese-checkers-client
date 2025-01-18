@@ -63,7 +63,7 @@ public class LoginSceneController
 
 		try {
 			port = Integer.parseInt(portInput.getText());
-		} catch (NumberFormatException e) {
+		} catch (final NumberFormatException e) {
 			System.out.println("Invalid port number: " + portInput.getText());
 			return;
 		}
@@ -85,7 +85,7 @@ public class LoginSceneController
 	}
 
 
-	private Thread getConnectionThread(String hostname, int port)
+	private Thread getConnectionThread(final String hostname, final int port)
 	{
 		return new Thread(() -> {
 
@@ -95,7 +95,7 @@ public class LoginSceneController
 			try
 			{
 				status = NetworkConnector.connect(hostname, port);
-			} catch (ConnectException e)
+			} catch (final ConnectException e)
 			{
 				errorMessage = e.getMessage();
 			}
@@ -124,13 +124,13 @@ public class LoginSceneController
 	}
 
 
-	private void changeScene(String fxmlPath)
+	private void changeScene(final String fxmlPath)
 	{
 		Scene scene;
 		try
 		{
 			scene = FXMLLoader.load(Objects.requireNonNull(getClass().getResource(fxmlPath)));
-		} catch (IOException e)
+		} catch (final IOException e)
 		{
 			ErrorDialog.show("FXML ERROR", "Could not load the gameScene.fxml file.");
 			throw new RuntimeException(e);
@@ -142,7 +142,7 @@ public class LoginSceneController
 
 
 	@FXML
-	private void onNumberFieldChanged(KeyEvent event)
+	private void onNumberFieldChanged(final KeyEvent event)
 	{
 		TextField field = (TextField) event.getSource();
 		String text = field.getText();

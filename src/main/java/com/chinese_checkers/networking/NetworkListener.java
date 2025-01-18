@@ -6,6 +6,9 @@ import com.chinese_checkers.comms.Message.Message;
 import java.io.*;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * The NetworkListener thread listens for incoming messages from the network and automatically processes them.
+ */
 public class NetworkListener extends Thread
 {
 	private final BufferedReader in;
@@ -47,10 +50,9 @@ public class NetworkListener extends Thread
 				threadLock.unlock();
 			}
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{
 			// Socket closed
-			//System.out.println("I/O error: " + e);
 		}
 		finally
 		{

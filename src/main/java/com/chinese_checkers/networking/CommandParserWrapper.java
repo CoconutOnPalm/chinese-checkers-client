@@ -6,6 +6,10 @@ import com.chinese_checkers.comms.Message.Message;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
+/**
+ * The CommandParserWrapper class wraps the CommandParser class to provide a thread-safe singleton interface for adding
+ * commands and parsing messages.
+ */
 public class CommandParserWrapper
 {
 	private final CommandParser commandParser;
@@ -25,14 +29,25 @@ public class CommandParserWrapper
 		return instance;
 	}
 
-	public static void addCommand(String command, Consumer<Message> handler)
+	/**
+	 * @brief Registers a command with the command parser
+	 *
+	 * @param command see chinese_checkers.comms.Message for a list of possible commands
+	 * @param handler callback function to handle the command
+	 */
+	public static void addCommand(final String command, final Consumer<Message> handler)
 	{
 		lock.lock();
 		getInstance().commandParser.addCommand(command, handler);
 		lock.unlock();
 	}
 
-	public static void parse(Message message)
+	/**
+	 * @brief Parses a message using the command parser
+	 *
+	 * @param message see chinese_checkers.comms.Message for a list of possible commands
+	 */
+	public static void parse(final Message message)
 	{
 		lock.lock();
 		getInstance().commandParser.parseCommand(message);

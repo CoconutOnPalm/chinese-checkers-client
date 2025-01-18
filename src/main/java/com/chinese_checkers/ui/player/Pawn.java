@@ -10,13 +10,16 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
 
+/**
+ * @brief Class representing a pawn on the game board.
+ */
 public class Pawn extends Circle implements IDrawable, IBoardObject
 {
 	private static final int RADIUS = 20;
 
-	private int id;
+	private final int id;
 	private final int ownerID;
-	private Color color;
+	private final Color color;
 
 	private boolean border = false;
 
@@ -35,7 +38,7 @@ public class Pawn extends Circle implements IDrawable, IBoardObject
 
 
 	@Override
-	public boolean contains(double x, double y)
+	public boolean contains(final double x, final double y)
 	{
 		return (x - canvasPosition.getX()) * (x - canvasPosition.getX()) + (y - canvasPosition.getY()) * (y - canvasPosition.getY()) <= RADIUS * RADIUS;
 	}
@@ -63,7 +66,7 @@ public class Pawn extends Circle implements IDrawable, IBoardObject
 	}
 
 	@Override
-	public void draw(GraphicsContext gc, float offsetX, float offsetY)
+	public void draw(final GraphicsContext gc, final float offsetX, final float offsetY)
 	{
 		if (canvasPosition == null)
 		{
@@ -86,17 +89,26 @@ public class Pawn extends Circle implements IDrawable, IBoardObject
 	}
 
 
-	public void setBorder(boolean border)
+	/**
+	 * @brief Sets if the pawn should have a border.
+	 */
+	public void setBorder(final boolean border)
 	{
 		this.border = border;
 	}
 
 
+	/**
+	 * @brief Gets the unique ID of the pawn. Don't confuse with javafx's getId()
+	 */
 	public int getID()
 	{
 		return id;
 	}
 
+	/**
+	 * @brief Gets the ID of the player that owns the pawn.
+	 */
 	public int getOwnerID()
 	{
 		return ownerID;

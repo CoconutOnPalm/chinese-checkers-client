@@ -12,6 +12,9 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.chinese_checkers.comms.CommandParser;
 import com.chinese_checkers.ui.PlayerData;
 
+/**
+ * @brief NetworkConnector class that handles the connection to the server. Singleton, thread-safe.
+ */
 public class NetworkConnector
 {
 	private Socket socket;
@@ -40,6 +43,9 @@ public class NetworkConnector
 	}
 
 
+	/**
+	 * @brief Connects to the server (10 max attempts, 1000ms frequency)
+	 */
 	public static boolean connect(final String hostname, final int port) throws ConnectException
 	{
 		return connect(hostname, port, 10, 1000);
@@ -139,7 +145,7 @@ public class NetworkConnector
 		{
 			getInstance().socket.close();
 			getInstance().in.close();
-		} catch (IOException e)
+		} catch (final IOException e)
 		{
 			System.out.println("Error shutting down input: " + e);
 		}
@@ -149,7 +155,7 @@ public class NetworkConnector
 		{
 			// force disconnect after 2 seconds
 			listener.join(2 * 1000);
-		} catch (InterruptedException e)
+		} catch (final InterruptedException e)
 		{
 			System.out.println("Listener thread interrupted");
 		}
@@ -160,14 +166,14 @@ public class NetworkConnector
 	 * @brief Sends a message to the server
 	 * @param message   Message to send
 	 */
-	public static void send(String message)
+	public static void send(final String message)
 	{
 		lock.lock();
 		getInstance().out.println(message);
 		lock.unlock();
 	}
 
-	public String expectResponse(String type)
+	public String expectResponse(final String type)
 	{
 		try
 		{
@@ -181,13 +187,16 @@ public class NetworkConnector
 
 			return line.substring(parts[0].length() + 1);
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{
 			System.out.println("I/O error: " + e);
 			return null;
 		}
 	}
 
+	/**
+	 * @brief Checks if the client is connected to the server
+	 */
 	public static boolean isConnected()
 	{
 		return getInstance().socket != null && getInstance().listener.isRunning();

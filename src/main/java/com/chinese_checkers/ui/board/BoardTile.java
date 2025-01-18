@@ -7,20 +7,22 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 
+/**
+ * @brief Represents a hexagonal tile on the game board.
+ */
 public class BoardTile extends Polygon implements IDrawable, IBoardObject
 {
 	private static final float sqrt3_div2 = (float) Math.sqrt(3) / 2; // sqrt(3) / 2
 	private static final Color blankTileColor = Color.rgb(192, 192, 192, 1);
 	private static final Color selectedTileColor = Color.rgb(216, 216, 216, 0.70);
 
-	private final Point2D position;
-	private final float radius;
 	private final Position boardPosition;
 	private final double[] xPoints = new double[6];
 	private final double[] yPoints = new double[6];
 
-	public BoardTile(Point2D position, Position boardPosition, float radius)
+	public BoardTile(final Point2D position, final Position boardPosition, float radius)
 	{
+
 		super(
 				position.getX(), position.getY() - radius,
 				position.getX() + radius * sqrt3_div2, position.getY() - radius / 2,
@@ -29,6 +31,9 @@ public class BoardTile extends Polygon implements IDrawable, IBoardObject
 				position.getX() - radius * sqrt3_div2, position.getY() + radius / 2,
 				position.getX() - radius * sqrt3_div2, position.getY() - radius / 2
 		);
+
+		if (radius <= 0)
+			throw new IllegalArgumentException("Radius must be greater than 0");
 
 		xPoints[0] = position.getX();
 		yPoints[0] = position.getY() - radius;
@@ -50,13 +55,17 @@ public class BoardTile extends Polygon implements IDrawable, IBoardObject
 
 		this.setFill(blankTileColor);
 
-		this.radius = radius;
-		this.position = position;
 		this.boardPosition = boardPosition;
 	}
 
+	/**
+	 * @brief Checks if the point is inside the hexagon.
+	 * @param x the x coordinate of the point in Node's space
+	 * @param y the y coordinate of the point in Node's space
+	 * @return	true if the point is inside the hexagon, false otherwise
+	 */
 	@Override
-	public boolean contains(double x, double y)
+	public boolean contains(final double x, final double y)
 	{
 		float a = 0; // tan(slope angle)
 		int intersections = 0;
@@ -98,7 +107,7 @@ public class BoardTile extends Polygon implements IDrawable, IBoardObject
 
 
 	@Override
-	public void draw(GraphicsContext gc, float offsetX, float offsetY)
+	public void draw(final GraphicsContext gc, final float offsetX, final float offsetY)
 	{
 		gc.save();
 
@@ -106,7 +115,16 @@ public class BoardTile extends Polygon implements IDrawable, IBoardObject
 		gc.fillPolygon(xPoints, yPoints, 6);
 		gc.setFill(Color.BLACK);
 		gc.strokePolygon(xPoints, yPoints, 6);
-		gc.restore();
+
+		// gc.restore() breaks once in a while, so we catch the exception
+		try
+		{
+			gc.restore();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+
+		}
 	}
 
 

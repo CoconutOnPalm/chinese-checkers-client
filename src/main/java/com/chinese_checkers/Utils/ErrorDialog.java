@@ -20,7 +20,7 @@ public class ErrorDialog
 	 * @param title The title (header) of the dialog
 	 * @param message The message of the dialog
 	 */
-	public static void show(String title, String message)
+	public static void show(final String title, final String message)
 	{
 		javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
 		alert.setHeaderText(title);
