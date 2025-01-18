@@ -20,24 +20,24 @@ public interface IBoard
 	/**
 	 * @param position board position
 	 * @return the tile at the specified board position
-	 * @brief Get the tile at the specified board position
+	 * Get the tile at the specified board position
 	 */
 	IBoardObject getTile(final Position position);
 
 	/**
-	 * @brief Returns the tile at the specified canvas position
+	 * Returns the tile at the specified canvas position
 	 * @param x
 	 * @param y
 	 */
 	IBoardObject getTileByCanvasPosition(final float x, final float y);
 
 	/**
-	 * @brief returns a map of board positions to canvas positions
+	 * returns a map of board positions to canvas positions
 	 */
 	Map<Position, Point2D> mapCanvasPositions();
 
 	/**
-	 * @brief returns a map of player corners to colors
+	 * returns a map of player corners to colors
 	 */
 	Map<Player.Corner, Color> mapPlayerColors();
 }

@@ -13,7 +13,7 @@ import com.chinese_checkers.comms.CommandParser;
 import com.chinese_checkers.ui.PlayerData;
 
 /**
- * @brief NetworkConnector class that handles the connection to the server. Singleton, thread-safe.
+ * NetworkConnector class that handles the connection to the server. Singleton, thread-safe.
  */
 public class NetworkConnector
 {
@@ -44,7 +44,7 @@ public class NetworkConnector
 
 
 	/**
-	 * @brief Connects to the server (10 max attempts, 1000ms frequency)
+	 * Connects to the server (10 max attempts, 1000ms frequency)
 	 */
 	public static boolean connect(final String hostname, final int port) throws ConnectException
 	{
@@ -53,7 +53,7 @@ public class NetworkConnector
 
 
 	/**
-	 * @brief Connects to the server
+	 * Connects to the server
 	 * @param max_attempts              Maximum number of attempts to connect
 	 * @param connection_frequency_ms   Frequency of connection attempts in milliseconds
 	 */
@@ -129,7 +129,7 @@ public class NetworkConnector
 	}
 
 	/**
-	 * @brief Disconnects from the server
+	 * Disconnects from the server
 	 */
 	public static void disconnect()
 	{
@@ -163,7 +163,7 @@ public class NetworkConnector
 
 
 	/**
-	 * @brief Sends a message to the server
+	 * Sends a message to the server
 	 * @param message   Message to send
 	 */
 	public static void send(final String message)
@@ -195,7 +195,7 @@ public class NetworkConnector
 	}
 
 	/**
-	 * @brief Checks if the client is connected to the server
+	 * Checks if the client is connected to the server
 	 */
 	public static boolean isConnected()
 	{

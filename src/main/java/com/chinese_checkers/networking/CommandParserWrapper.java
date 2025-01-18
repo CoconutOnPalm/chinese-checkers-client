@@ -30,7 +30,7 @@ public class CommandParserWrapper
 	}
 
 	/**
-	 * @brief Registers a command with the command parser
+	 * Registers a command with the command parser
 	 *
 	 * @param command see chinese_checkers.comms.Message for a list of possible commands
 	 * @param handler callback function to handle the command
@@ -43,7 +43,7 @@ public class CommandParserWrapper
 	}
 
 	/**
-	 * @brief Parses a message using the command parser
+	 * Parses a message using the command parser
 	 *
 	 * @param message see chinese_checkers.comms.Message for a list of possible commands
 	 */

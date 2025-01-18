@@ -1,7 +1,7 @@
 package com.chinese_checkers.ui;
 
 /**
- * @brief Global player data
+ * Global player data
  */
 public record PlayerData()
 {

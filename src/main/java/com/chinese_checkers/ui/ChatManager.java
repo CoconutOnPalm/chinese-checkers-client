@@ -15,7 +15,7 @@ public class ChatManager
 	}
 
 	/**
-	 * @brief Adds a message to the chat log.
+	 * Adds a message to the chat log.
 	 */
 	public void addMessage(final String message)
 	{

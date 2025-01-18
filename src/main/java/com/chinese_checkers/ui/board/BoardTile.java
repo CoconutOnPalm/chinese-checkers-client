@@ -8,7 +8,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 
 /**
- * @brief Represents a hexagonal tile on the game board.
+ * Represents a hexagonal tile on the game board.
  */
 public class BoardTile extends Polygon implements IDrawable, IBoardObject
 {
@@ -59,7 +59,7 @@ public class BoardTile extends Polygon implements IDrawable, IBoardObject
 	}
 
 	/**
-	 * @brief Checks if the point is inside the hexagon.
+	 * Checks if the point is inside the hexagon.
 	 * @param x the x coordinate of the point in Node's space
 	 * @param y the y coordinate of the point in Node's space
 	 * @return	true if the point is inside the hexagon, false otherwise

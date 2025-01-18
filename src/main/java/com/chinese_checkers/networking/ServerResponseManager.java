@@ -25,7 +25,7 @@ public class ServerResponseManager
 
 
 	/**
-	 * @brief Registers a new response command
+	 * Registers a new response command
 	 * @param command	see chinese_checkers.comms.Message for a list of possible commands
 	 */
 	public void addWaitingResponse(final String command)
@@ -34,7 +34,7 @@ public class ServerResponseManager
 	}
 
 	/**
-	 * @brief Pushes a response to the response queue
+	 * Pushes a response to the response queue
 	 * @param response	the response to push
 	 */
 	public void pushResponse(final ResponseMessage response)
@@ -48,7 +48,7 @@ public class ServerResponseManager
 	}
 
 	/**
-	 * @brief Waits for a server response and returns the ResponseMessage json
+	 * Waits for a server response and returns the ResponseMessage json
 	 * @param command	see chinese_checkers.comms.Message for a list of possible commands
 	 * @param maxWaitTime_sec	maximum time to wait for a response. Returns a timeout ResponseMessage if exceeded
 	 * @return	ResponseMessage json

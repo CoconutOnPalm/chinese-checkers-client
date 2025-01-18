@@ -3,7 +3,7 @@ package com.chinese_checkers.ui;
 import javafx.scene.control.Label;
 
 /**
- * @brief A label that represents a player in the game lobby.
+ * A label that represents a player in the game lobby.
  */
 public class PlayerLabel extends Label
 {
@@ -19,7 +19,7 @@ public class PlayerLabel extends Label
 	}
 
 	/**
-	 * @brief Sets the label to be selected or deselected, changing the background color.
+	 * Sets the label to be selected or deselected, changing the background color.
 	 */
 	public void setSelected(final boolean selected)
 	{

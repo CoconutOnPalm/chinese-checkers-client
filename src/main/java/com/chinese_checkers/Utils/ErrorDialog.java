@@ -1,14 +1,14 @@
 package com.chinese_checkers.Utils;
 
 /**
- * @brief A simple-to-use error popup
+ * A simple-to-use error popup
  */
 public class ErrorDialog
 {
 	static System.Logger logger = System.getLogger(ErrorDialog.class.getName());
 
 	/**
-	 * @brief Don't use the constructor - this is a static class
+	 * Don't use the constructor - this is a static class
 	 */
 	private ErrorDialog() throws InstantiationException
 	{
@@ -16,7 +16,7 @@ public class ErrorDialog
 	}
 
 	/**
-	 * @brief Show an error dialog
+	 * Show an error dialog
 	 * @param title The title (header) of the dialog
 	 * @param message The message of the dialog
 	 */

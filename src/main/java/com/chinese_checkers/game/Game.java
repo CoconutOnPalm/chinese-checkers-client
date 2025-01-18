@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @brief The Game class manages the state and logic of a game of Chinese Checkers.
+ * The Game class manages the state and logic of a game of Chinese Checkers.
  */
 public class Game
 {
@@ -57,7 +57,7 @@ public class Game
 
 
 	/**
-	 * @brief Adds a player to the game.
+	 * Adds a player to the game.
 	 * @param id	Unique player ID.
 	 * @param name	Non-empty player name.
 	 */
@@ -74,7 +74,7 @@ public class Game
 
 
 	/**
-	 * @brief Returns all players in the game.
+	 * Returns all players in the game.
 	 */
 	public Map<Integer, Player> getPlayers()
 	{
@@ -83,7 +83,7 @@ public class Game
 
 
 	/**
-	 * @brief Renders the game board, including all pawns.
+	 * Renders the game board, including all pawns.
 	 * @param gc	Canvas graphics context.
 	 * @param offsetX	Offset from the upper-left corner to the center of the board.
 	 * @param offsetY	Offset from the upper-left corner to the center of the board.
@@ -101,7 +101,7 @@ public class Game
 
 
 	/**
-	 * @brief Renders all pawns on the board.
+	 * Renders all pawns on the board.
 	 * @param gc	Canvas graphics context.
 	 * @param offsetX	Offset from the upper-left corner to the center of the board.
 	 * @param offsetY	Offset from the upper-left corner to the center of the board.
@@ -117,7 +117,7 @@ public class Game
 
 
 	/**
-	 * @brief Send a request to the server to join the game.
+	 * Send a request to the server to join the game.
 	 * @param name	Non-empty player name.
 	 */
 	public void requestJoin(final String name)
@@ -148,7 +148,7 @@ public class Game
 
 
 	/**
-	 * @brief Locally moves a pawn to a new position on the board and awaits server response to confirm the move.
+	 * Locally moves a pawn to a new position on the board and awaits server response to confirm the move.
 	 * @param pawn	Pawn to move.
 	 * @param newPosition	New board position to move the pawn to.
 	 */
@@ -243,7 +243,7 @@ public class Game
 
 
 	/**
-	 * @brief Send information to the server that the player has ended their turn.
+	 * Send information to the server that the player has ended their turn.
 	 */
 	public void endTurn()
 	{
@@ -267,7 +267,7 @@ public class Game
 
 
 	/**
-	 * @brief Handles a server response.
+	 * Handles a server response.
 	 * @param json	Server response message.
 	 */
 	private void onServerResponse(final ResponseMessage json)
@@ -284,7 +284,7 @@ public class Game
 
 
 	/**
-	 * @brief Handles a game start message from the server.
+	 * Handles a game start message from the server.
 	 * @param json	Game start message.
 	 */
 	private void onGameStart(final GameStartMessage json)
@@ -319,7 +319,7 @@ public class Game
 
 
 	/**
-	 * @brief Handles a game end message from the server.
+	 * Handles a game end message from the server.
 	 * @param json	Game end message.
 	 */
 	private void onNextRound(final NextRoundMessage json)
@@ -328,7 +328,7 @@ public class Game
 	}
 
 	/**
-	 * @brief Handles a player move message from the server.
+	 * Handles a player move message from the server.
 	 * @param json	Player move message.
 	 */
 	private void onPlayerMoved(final MovePlayerMessage json)
@@ -376,7 +376,7 @@ public class Game
 	}
 
 	/**
-	 * @brief Handles a winner announcement message from the server.
+	 * Handles a winner announcement message from the server.
 	 * @param json	Winner announcement message.
 	 */
 	private void onWinnerAnnounced(final AnnounceWinnerMessage json)
@@ -407,7 +407,7 @@ public class Game
 
 
 	/**
-	 * @brief Returns the board manager. Warning: board manager may be null.
+	 * Returns the board manager. Warning: board manager may be null.
 	 */
 	public BoardManager getBoardManager()
 	{

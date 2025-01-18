@@ -11,7 +11,7 @@ import javafx.scene.shape.Circle;
 
 
 /**
- * @brief Class representing a pawn on the game board.
+ * Class representing a pawn on the game board.
  */
 public class Pawn extends Circle implements IDrawable, IBoardObject
 {
@@ -90,7 +90,7 @@ public class Pawn extends Circle implements IDrawable, IBoardObject
 
 
 	/**
-	 * @brief Sets if the pawn should have a border.
+	 * Sets if the pawn should have a border.
 	 */
 	public void setBorder(final boolean border)
 	{
@@ -99,7 +99,7 @@ public class Pawn extends Circle implements IDrawable, IBoardObject
 
 
 	/**
-	 * @brief Gets the unique ID of the pawn. Don't confuse with javafx's getId()
+	 * Gets the unique ID of the pawn. Don't confuse with javafx's getId()
 	 */
 	public int getID()
 	{
@@ -107,7 +107,7 @@ public class Pawn extends Circle implements IDrawable, IBoardObject
 	}
 
 	/**
-	 * @brief Gets the ID of the player that owns the pawn.
+	 * Gets the ID of the player that owns the pawn.
 	 */
 	public int getOwnerID()
 	{

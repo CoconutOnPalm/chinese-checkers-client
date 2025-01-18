@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * @brief Manager for the UI elements of the game
+ * Manager for the UI elements of the game
  */
 public class UIManager
 {
@@ -39,7 +39,7 @@ public class UIManager
 	}
 
 	/**
-	 * @brief Add a player label to the player board
+	 * Add a player label to the player board
 	 * @param playerID
 	 * @param playerName
 	 */
@@ -62,7 +62,7 @@ public class UIManager
 
 
 	/**
-	 * @brief Add a temporary player label to avoid null pointer exceptions in other methods
+	 * Add a temporary player label to avoid null pointer exceptions in other methods
 	 * @param playerID
 	 */
 	private void addGhostPlayer(final int playerID)
@@ -107,7 +107,7 @@ public class UIManager
 	}
 
 	/**
-	 * @brief Select the player whose turn it is
+	 * Select the player whose turn it is
 	 * @param json 	Server message containing the player ID
 	 */
 	public void selectPlayer(final NextRoundMessage json)
@@ -133,7 +133,7 @@ public class UIManager
 
 
 	/**
-	 * @brief Add a time-stamped message to the chat log
+	 * Add a time-stamped message to the chat log
 	 * @param message
 	 */
 	public void addMessage(final String message)
@@ -150,7 +150,7 @@ public class UIManager
 
 
 	/**
-	 * @brief Disables canvas and skip round button
+	 * Disables canvas and skip round button
 	 * @param block
 	 */
 	public void disableUI(final boolean block)
