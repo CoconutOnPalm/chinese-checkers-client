@@ -21,12 +21,15 @@ import javafx.scene.canvas.GraphicsContext;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The Game class manages the state and logic of a game of Chinese Checkers.
  */
 public class Game
 {
+	private static final ReentrantLock lock = new ReentrantLock();
+
 	private final ServerResponseManager responseManager = new ServerResponseManager();
 	private final UIManager uiManager;
 	private BoardManager boardManager;
@@ -42,6 +45,7 @@ public class Game
 		this.uiManager = uiManager;
 		this.players = new HashMap<>();
 
+		lock.lock();
 
 		CommandParserWrapper.addCommand("game_start", msg -> onGameStart((GameStartMessage) msg));
 		//CommandParserWrapper.addCommand("game_end", msg -> onGameEnd((GameEndMessage) msg));
@@ -53,6 +57,8 @@ public class Game
 		CommandParserWrapper.addCommand("self_data", msg -> onSelfDataGiven((SelfDataMessage) msg));
 
 		responseManager.addWaitingResponse("move_request");
+
+		lock.unlock();
 	}
 
 
@@ -63,6 +69,8 @@ public class Game
 	 */
 	private void addPlayer(final int id, final String name)
 	{
+		lock.lock();
+
 		if (name == null || name.isEmpty())
 		{
 			throw new IllegalArgumentException("Invalid player name.");
@@ -70,6 +78,8 @@ public class Game
 
 		players.put(id, new Player(id, name));
 		uiManager.addPlayer(id, name);
+
+		lock.unlock();
 	}
 
 
@@ -95,8 +105,14 @@ public class Game
 			return;
 		}
 
+		lock.lock();
+
+		gc.save();
 		boardManager.renderTiles(gc, offsetX, offsetY);
 		this.renderPawns(gc, offsetX, offsetY);
+		gc.restore();
+
+		lock.unlock();
 	}
 
 
@@ -142,8 +158,12 @@ public class Game
 			return;
 		}
 
+		lock.lock();
+
 		uiManager.addMessage("Requesting to join the game...");
 		NetworkConnector.send(json);
+
+		lock.unlock();
 	}
 
 
@@ -163,16 +183,16 @@ public class Game
 			return;
 		}
 
-
-		Position oldPosition = pawn.getBoardPosition();
-		System.out.println("Old position: " + oldPosition + ", new position: " + newPosition);
-		pawn.setBoardPosition(newPosition, boardManager.getBoard());
-
 		if (!NetworkConnector.isConnected())
 		{
 			uiManager.addMessage("Not connected to a server.");
 			return;
 		}
+
+		Position oldPosition = pawn.getBoardPosition();
+		System.out.println("Old position: " + oldPosition + ", new position: " + newPosition);
+		pawn.setBoardPosition(newPosition, boardManager.getBoard());
+
 
 		Message msg = new MoveRequestMessage(pawn.getID(), newPosition.getX(), newPosition.getY());
 		String json = msg.toJson();
@@ -217,6 +237,8 @@ public class Game
 		//  GAME_OVER,
 		//  UNREACHABLE,
 		//  OUT_OF_GOAL
+		lock.lock();
+
 		switch (response.getStatus())
 		{
 			case ResponseMessage.Status.SUCCESS -> {
@@ -237,8 +259,9 @@ public class Game
 				uiManager.addMessage("Unknown server response.");
 				pawn.setBoardPosition(oldPosition, boardManager.getBoard());
 			}
-
 		}
+
+		lock.unlock();
 	}
 
 
@@ -247,9 +270,11 @@ public class Game
 	 */
 	public void endTurn()
 	{
+
 		if (!NetworkConnector.isConnected())
 		{
 			System.out.println("Not connected to a server.");
+			lock.unlock();
 			return;
 		}
 
@@ -259,6 +284,7 @@ public class Game
 		if (json == null)
 		{
 			System.out.println("Failed to create JSON message.");
+			lock.unlock();
 			return;
 		}
 
@@ -275,6 +301,7 @@ public class Game
 		if (json == null)
 		{
 			System.out.println("Invalid server response.");
+			lock.unlock();
 			return;
 		}
 
@@ -289,6 +316,8 @@ public class Game
 	 */
 	private void onGameStart(final GameStartMessage json)
 	{
+		lock.lock();
+
 		int boardSize = json.getBoardSize();
 		this.boardManager = new BoardManager(new DefaultBoard(new Point2D(uiManager.getCanvasSize().getX() / 2f, uiManager.getCanvasSize().getY() / 2f), 25, boardSize));
 
@@ -314,6 +343,8 @@ public class Game
 
 		uiManager.addMessage("Game started.");
 		uiManager.addMessage("Variant: " + variant);
+
+		lock.unlock();
 	}
 
 
@@ -324,7 +355,11 @@ public class Game
 	 */
 	private void onNextRound(final NextRoundMessage json)
 	{
+		lock.lock();
+
 		currentPlayerID = json.getCurrentPlayerID();
+
+		lock.unlock();
 	}
 
 	/**
@@ -333,6 +368,8 @@ public class Game
 	 */
 	private void onPlayerMoved(final MovePlayerMessage json)
 	{
+		lock.lock();
+
 		int playerID = json.playerID;
 		int pawnID = json.pawnID;
 		int x = json.x;
@@ -341,6 +378,7 @@ public class Game
 		if (!players.containsKey(playerID))
 		{
 			System.out.println("[ERROR]: player does not exist.");
+			lock.unlock();
 			return;
 		}
 
@@ -348,8 +386,10 @@ public class Game
 		if (!player.getPawns().containsKey(pawnID))
 		{
 			System.out.println("[ERROR]: pawn does not exist.");
+			lock.unlock();
 			return;
 		}
+
 
 		Pawn pawn = player.getPawns().get(pawnID);
 
@@ -360,19 +400,26 @@ public class Game
 				System.out.println("[DEBUG]: pawn already in position (good).");
 			}
 
+			lock.unlock();
 			return;
 		}
 
 		pawn.setBoardPosition(new Position(x, y), boardManager.getBoard());
+
+		lock.unlock();
 	}
 
 
 	private void onSelfDataGiven(final SelfDataMessage json)
 	{
+		lock.lock();
+
 		myPlayerID = json.getPlayerID();
 		PlayerData.id = myPlayerID;
 
 		System.out.println("Updating data: ID=" + myPlayerID);
+
+		lock.unlock();
 	}
 
 	/**
@@ -389,6 +436,8 @@ public class Game
 			return;
 		}
 
+		lock.unlock();
+
 		String numberEnding = switch (json.getPlayerID())
 		{
 			case 1 -> "st";
@@ -403,6 +452,8 @@ public class Game
 		{
 			uiManager.disableUI(true);
 		}
+
+		lock.unlock();
 	}
 
 

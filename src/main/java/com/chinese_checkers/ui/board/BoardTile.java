@@ -109,22 +109,10 @@ public class BoardTile extends Polygon implements IDrawable, IBoardObject
 	@Override
 	public void draw(final GraphicsContext gc, final float offsetX, final float offsetY)
 	{
-		gc.save();
-
 		gc.setFill(this.getFill());
 		gc.fillPolygon(xPoints, yPoints, 6);
 		gc.setFill(Color.BLACK);
 		gc.strokePolygon(xPoints, yPoints, 6);
-
-		// gc.restore() breaks once in a while, so we catch the exception
-		try
-		{
-			gc.restore();
-		} catch (Exception e)
-		{
-			e.printStackTrace();
-
-		}
 	}
 
 

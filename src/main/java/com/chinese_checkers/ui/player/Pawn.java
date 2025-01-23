@@ -74,8 +74,6 @@ public class Pawn extends Circle implements IDrawable, IBoardObject
 			return;
 		}
 
-		gc.save();
-
 		gc.setFill(this.getFill());
 		gc.fillOval(canvasPosition.getX() - RADIUS + offsetX, canvasPosition.getY() - RADIUS + offsetY, RADIUS * 2, RADIUS * 2);
 
@@ -84,8 +82,6 @@ public class Pawn extends Circle implements IDrawable, IBoardObject
 			gc.setStroke(Color.BLACK);
 			gc.strokeOval(canvasPosition.getX() - RADIUS + offsetX, canvasPosition.getY() - RADIUS + offsetY, RADIUS * 2, RADIUS * 2);
 		}
-
-		gc.restore();
 	}
 
 
