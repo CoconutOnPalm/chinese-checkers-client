@@ -51,7 +51,7 @@ public class Game
 		//CommandParserWrapper.addCommand("game_end", msg -> onGameEnd((GameEndMessage) msg));
 		CommandParserWrapper.addCommand("announce_winner", msg -> onWinnerAnnounced((AnnounceWinnerMessage) msg));
 		CommandParserWrapper.addCommand("next_round", msg -> onNextRound((NextRoundMessage) msg));
-		CommandParserWrapper.addCommand("next_round", msg -> uiManager.selectPlayer((NextRoundMessage) msg));
+		CommandParserWrapper.addCommand("next_round", msg -> { lock.lock(); uiManager.selectPlayer((NextRoundMessage) msg); lock.unlock(); });
 		CommandParserWrapper.addCommand("response", msg -> onServerResponse((ResponseMessage) msg));
 		CommandParserWrapper.addCommand("move_player", msg -> onPlayerMoved((MovePlayerMessage) msg));
 		CommandParserWrapper.addCommand("self_data", msg -> onSelfDataGiven((SelfDataMessage) msg));
