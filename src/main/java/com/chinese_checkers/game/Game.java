@@ -438,7 +438,7 @@ public class Game
 
 		lock.lock();
 
-		String numberEnding = switch (json.getPlayerID())
+		String numberEnding = switch (json.getPlace())
 		{
 			case 1 -> "st";
 			case 2 -> "nd";
@@ -446,7 +446,7 @@ public class Game
 			default -> "th";
 		};
 
-		uiManager.addMessage("Player " + winner.getName() + " has taken " + json.getPlayerID() + numberEnding + " place.");
+		uiManager.addMessage("Player " + winner.getName() + " has taken " + json.getPlace() + numberEnding + " place.");
 
 		if (winner.getID() == myPlayerID)
 		{

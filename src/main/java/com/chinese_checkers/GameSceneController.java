@@ -66,6 +66,8 @@ public class GameSceneController
 			Stage stage = (Stage) playerBoard.getScene().getWindow();
 			stage.setOnCloseRequest(e -> NetworkConnector.disconnect());
 			stage.setTitle("Chinese Checkers - " + PlayerData.username);
+
+			playerBoard.getScene().addEventFilter(KeyEvent.KEY_PRESSED, this::onKeyPressedGlobal);
 		});
 
 		CommandParserWrapper.addCommand("game_start", msg -> this.render());
@@ -192,6 +194,16 @@ public class GameSceneController
 	public void onNextRoundButtonPressed(KeyEvent event)
 	{
 		game.endTurn();
+	}
+
+	private void onKeyPressedGlobal(KeyEvent event)
+	{
+		// only one event right now, no need to map
+
+		if (Objects.equals(event.getCharacter(), "s"))
+		{
+			game.endTurn();
+		}
 	}
 
 
