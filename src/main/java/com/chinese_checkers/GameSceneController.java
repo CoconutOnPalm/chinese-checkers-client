@@ -17,6 +17,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -187,13 +188,21 @@ public class GameSceneController
 		game.endTurn();
 	}
 
+	@FXML
+	public void onNextRoundButtonPressed(KeyEvent event)
+	{
+		game.endTurn();
+	}
+
 
 	public void render()
 	{
 		final float offsetX = canvas.widthProperty().floatValue() / 2;
 		final float offsetY = canvas.heightProperty().floatValue() / 2;
 
-		game.renderBoard(canvas.getGraphicsContext2D(), offsetX, offsetY);
+		Platform.runLater(() -> {
+				game.renderBoard(canvas.getGraphicsContext2D(), offsetX, offsetY);
+		});
 	}
 
 

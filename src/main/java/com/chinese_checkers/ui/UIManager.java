@@ -112,6 +112,8 @@ public class UIManager
 	 */
 	public void selectPlayer(final NextRoundMessage json)
 	{
+
+		Platform.runLater(() -> {
 		lock.lock();
 		int currentPlayerID = json.getCurrentPlayerID();
 
@@ -129,6 +131,7 @@ public class UIManager
 		playerLabels.get(currentPlayerID).setSelected(true);
 
 		lock.unlock();
+		});
 	}
 
 
@@ -138,14 +141,17 @@ public class UIManager
 	 */
 	public void addMessage(final String message)
 	{
-		var time = LocalDateTime.now();
-		int hour = time.getHour();
-		int minute = time.getMinute();
+		Platform.runLater(() -> {
 
-		if (minute < 10)
-			chatManager.addMessage("[" + hour + ":0" + minute + "]> " + message);
-		else
-			chatManager.addMessage("[" + hour + ":" + minute + "]> " + message);
+			var time = LocalDateTime.now();
+			int hour = time.getHour();
+			int minute = time.getMinute();
+
+			if (minute < 10)
+				chatManager.addMessage("[" + hour + ":0" + minute + "]> " + message);
+			else
+				chatManager.addMessage("[" + hour + ":" + minute + "]> " + message);
+		});
 	}
 
 
@@ -155,8 +161,10 @@ public class UIManager
 	 */
 	public void disableUI(final boolean block)
 	{
-		canvas.setDisable(block);
+		Platform.runLater(() -> {
+				canvas.setDisable(block);
 		skipRoundButton.setDisable(block);
+		});
 	}
 
 	public Point2D getCanvasSize()

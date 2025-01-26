@@ -436,7 +436,7 @@ public class Game
 			return;
 		}
 
-		lock.unlock();
+		lock.lock();
 
 		String numberEnding = switch (json.getPlayerID())
 		{
